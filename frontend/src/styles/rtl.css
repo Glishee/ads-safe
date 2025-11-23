@@ -1,0 +1,51 @@
+/* Глобальные правила для RTL */
+html[dir="rtl"] {
+  text-align: right;
+}
+
+/* Иконки и отступы */
+html[dir="rtl"] .ui-icon-right {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+html[dir="rtl"] .ui-icon-left {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+/* Поля ввода */
+html[dir="rtl"] input,
+html[dir="rtl"] textarea {
+  direction: rtl;
+}
+
+/* Стили скроллбара */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* Активация шрифта для RTL */
+.rtl-active {
+  font-family: 'Arial', 'Segoe UI', sans-serif;
+}
+
+/* Сайдбар при RTL */
+html[dir="rtl"] .sidebar-menu-item {
+  padding-right: 1rem;
+  padding-left: 0.5rem;
+}
