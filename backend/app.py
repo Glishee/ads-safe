@@ -23,10 +23,11 @@ allowed_origins = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
 
 CORS(
     app,
-    resources={r"/api/*": {"origins": allowed_origins}},
+    origins=allowed_origins,
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+    expose_headers=["Content-Type"],
 )
 
 # 👇 Регистрируем блюпринты
