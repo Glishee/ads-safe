@@ -1,5 +1,4 @@
-from flask import Flask, send_from_directory
-from flask_cors import CORS
+from flask import Flask, send_from_directory, request, make_response
 from dotenv import load_dotenv
 import os
 
@@ -10,7 +9,7 @@ from routes.channels import channel_bp
 from routes.upload import upload_bp
 from routes.ad_requests import ad_request_bp
 from routes.llm import llm_bp
-from routes.telegram_api import telegram_bp  # 🆕
+from routes.telegram_api import telegram_bp
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "your-super-secret-key")
@@ -18,17 +17,30 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
-
 allowed_origins = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
 
-CORS(
-    app,
-    origins=allowed_origins,
-    supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-    expose_headers=["Content-Type"],
-)
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        origin = request.headers.get('Origin', '')
+        if origin in allowed_origins:
+            res = make_response()
+            res.headers['Access-Control-Allow-Origin'] = origin
+            res.headers['Access-Control-Allow-Credentials'] = 'true'
+            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            res.headers['Access-Control-Max-Age'] = '86400'
+            return res
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get('Origin', '')
+    if origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
 
 # 👇 Регистрируем блюпринты
 app.register_blueprint(user_bp, url_prefix='/api/auth')
