@@ -40,7 +40,21 @@ app.register_blueprint(telegram_bp, url_prefix="/api")  # 🆕
 @app.route('/health')
 def health():
     from flask import jsonify
-    return jsonify({"status": "ok", "frontend_url": os.getenv("FRONTEND_URL", "NOT SET")})
+    mongo_status = "unknown"
+    mongo_error = None
+    try:
+        from models.user_model import client
+        client.admin.command('ping')
+        mongo_status = "connected"
+    except Exception as e:
+        mongo_status = "error"
+        mongo_error = str(e)
+    return jsonify({
+        "status": "ok",
+        "frontend_url": os.getenv("FRONTEND_URL", "NOT SET"),
+        "mongo": mongo_status,
+        "mongo_error": mongo_error
+    })
 
 @app.route('/static/uploads/<filename>')
 def uploaded_file(filename):
