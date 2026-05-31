@@ -88,9 +88,28 @@ export const AdRequest = {
 
 
 export const User = {
-  login: (credentials) => api.post("/auth/login", credentials),
+  login: async (credentials) => {
+    const data = await api.post("/auth/login", credentials);
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
   register: (data) => api.post("/auth/register", data),
-  logout: () => api.post("/auth/logout", {}),
-  me: () => api.get("/auth/profile"),
-  getProfile: () => api.get("/auth/profile"),
+  logout: async () => {
+    localStorage.removeItem("user");
+    return api.post("/auth/logout", {});
+  },
+  me: async () => {
+    const cached = localStorage.getItem("user");
+    if (cached) return JSON.parse(cached);
+    const data = await api.get("/auth/profile");
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
+  getProfile: async () => {
+    const cached = localStorage.getItem("user");
+    if (cached) return JSON.parse(cached);
+    const data = await api.get("/auth/profile");
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
 };

@@ -25,13 +25,11 @@ export default function LoginForm({ language }) {
     try {
       // In a real implementation, this would be a real authentication call
       // For now, we'll simulate it with User.login()
-      await User.login({ email, password });
-      
-      // Redirect based on user role - would check this after login
-      const user = await User.me();
+      const user = await User.login({ email, password });
+
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
-      } else if (user.role === "channel_owner") {
+      } else if (user.application_role === "channel_owner") {
         navigate(createPageUrl("ChannelOwnerDashboard"));
       } else {
         navigate(createPageUrl("AdvertiserDashboard"));
