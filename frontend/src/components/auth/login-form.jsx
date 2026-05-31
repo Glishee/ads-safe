@@ -37,7 +37,7 @@ export default function LoginForm({ language }) {
         navigate(createPageUrl("AdvertiserDashboard"));
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
