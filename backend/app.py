@@ -17,7 +17,7 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
-allowed_origins = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
+allowed_origins = [o.strip() for o in os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")]
 
 @app.before_request
 def handle_preflight():
@@ -49,6 +49,11 @@ app.register_blueprint(upload_bp, url_prefix="/api")
 app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")  # 🆕
+
+@app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
+def ping():
+    from flask import jsonify
+    return jsonify({"ping": "pong", "origin": request.headers.get('Origin', 'none')})
 
 @app.route('/health')
 def health():
