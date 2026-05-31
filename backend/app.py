@@ -37,6 +37,11 @@ app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")  # 🆕
 
+@app.route('/health')
+def health():
+    from flask import jsonify
+    return jsonify({"status": "ok", "frontend_url": os.getenv("FRONTEND_URL", "NOT SET")})
+
 @app.route('/static/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory('static/uploads', filename)
