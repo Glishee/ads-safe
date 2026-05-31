@@ -72,7 +72,8 @@ export default function RegisterForm({ language }) {
 
         navigate(createPageUrl("Login"));
       } catch (err) {
-        setError(err.message || "Registration failed. Please try again.");
+        const apiUrl = import.meta.env.VITE_API_URL || "localhost (NOT SET)";
+        setError(`${err.message || "Request failed"} | API: ${apiUrl}`);
         console.error("Registration error:", err);
       } finally {
         setLoading(false);
