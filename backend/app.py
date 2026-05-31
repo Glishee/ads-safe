@@ -13,7 +13,10 @@ from routes.llm import llm_bp
 from routes.telegram_api import telegram_bp  # 🆕
 
 app = Flask(__name__)
-app.secret_key = 'your-super-secret-key'
+app.secret_key = os.getenv("SECRET_KEY", "your-super-secret-key")
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 
 allowed_origins = os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")
