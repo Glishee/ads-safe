@@ -23,23 +23,21 @@ allowed_origins = [o.strip() for o in os.getenv("FRONTEND_URL", "http://localhos
 def handle_preflight():
     if request.method == 'OPTIONS':
         origin = request.headers.get('Origin', '')
-        if origin in allowed_origins:
-            res = make_response()
-            res.headers['Access-Control-Allow-Origin'] = origin
-            res.headers['Access-Control-Allow-Credentials'] = 'true'
-            res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-            res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            res.headers['Access-Control-Max-Age'] = '86400'
-            return res
+        res = make_response()
+        res.headers['Access-Control-Allow-Origin'] = origin or '*'
+        res.headers['Access-Control-Allow-Credentials'] = 'true'
+        res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        res.headers['Access-Control-Max-Age'] = '86400'
+        return res
 
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '')
-    if origin in allowed_origins:
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Origin'] = origin or '*'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
 
 # 👇 Регистрируем блюпринты
