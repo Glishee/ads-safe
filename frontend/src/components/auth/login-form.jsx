@@ -89,9 +89,9 @@ export default function LoginForm({ language }) {
             className="w-full"
           />
         </div>
-        <Button 
-          type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700"
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 transition-transform active:scale-95"
           disabled={isLoading}
         >
           {isLoading ? (
