@@ -57,6 +57,7 @@ def login():
 
     return jsonify({
         'message': 'Login successful',
+        'id': str(user['_id']),
         'username': user['username'],
         'role': user['role'],
         'application_role': user.get('application_role', None)
@@ -86,6 +87,30 @@ def profile():
 def logout():
     session.clear()
     return jsonify({'message': 'Logged out'}), 200
+
+
+@user_bp.route('/users', methods=['GET'])
+def list_users():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({'message': 'Not logged in'}), 401
+
+    current_user = users_collection.find_one({'_id': ObjectId(user_id)})
+    if not current_user or current_user.get('role') != 'admin':
+        return jsonify({'message': 'Forbidden'}), 403
+
+    all_users = list(users_collection.find())
+    result = []
+    for u in all_users:
+        result.append({
+            'id': str(u['_id']),
+            'username': u.get('username'),
+            'email': u.get('email'),
+            'role': u.get('role', 'user'),
+            'application_role': u.get('application_role'),
+            'is_blocked': u.get('is_blocked', False),
+        })
+    return jsonify(result), 200
 
 
 

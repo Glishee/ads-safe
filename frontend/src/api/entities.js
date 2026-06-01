@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api";
 
 
 export async function apiGet(endpoint) {
@@ -54,6 +54,7 @@ export const api = {
 
 export const TelegramChannel = {
   getAll: () => api.get("/channels"),
+  get: (id) => api.get(`/channels/${id}`),
   getById: (id) => api.get(`/channels/${id}`),
   create: (data) => api.post("/channels", data),
   update: (id, data) => api.put(`/channels/${id}`, data),
@@ -71,7 +72,7 @@ export const AdRequest = {
   getByAdvertiser: (id) => api.get(`/ad-requests?advertiser_id=${id}`),
   getByChannel: (id) => api.get(`/ad-requests?channel_id=${id}`),
 
-  
+
   create: (formData) => apiPost("/ad-requests", formData, true),
 
   update: (id, data) => api.put(`/ad-requests/${id}`, data),
@@ -79,7 +80,7 @@ export const AdRequest = {
   filter: (params) =>
     api.get(`/ad-requests?${new URLSearchParams(params).toString()}`),
 
-  
+
   approve: (id) => api.post(`/ad-requests/${id}/approve`, {}),
   reject: (id, reason = "Rejected by admin") =>
     api.post(`/ad-requests/${id}/reject`, { reason }),
@@ -88,9 +89,29 @@ export const AdRequest = {
 
 
 export const User = {
-  login: (credentials) => api.post("/auth/login", credentials),
+  login: async (credentials) => {
+    const data = await api.post("/auth/login", credentials);
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
   register: (data) => api.post("/auth/register", data),
-  logout: () => api.post("/auth/logout", {}),
-  me: () => api.get("/auth/profile"),
-  getProfile: () => api.get("/auth/profile"),
+  logout: async () => {
+    localStorage.removeItem("user");
+    return api.post("/auth/logout", {});
+  },
+  me: async () => {
+    const cached = localStorage.getItem("user");
+    if (cached) return JSON.parse(cached);
+    const data = await api.get("/auth/profile");
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
+  getProfile: async () => {
+    const cached = localStorage.getItem("user");
+    if (cached) return JSON.parse(cached);
+    const data = await api.get("/auth/profile");
+    localStorage.setItem("user", JSON.stringify(data));
+    return data;
+  },
+  list: () => api.get("/auth/users"),
 };

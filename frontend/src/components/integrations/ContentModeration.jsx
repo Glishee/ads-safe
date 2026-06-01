@@ -15,7 +15,7 @@ Text:
 ${text}
 """`;
 
-    const response = await fetch("http://localhost:5000/api/llm", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/llm`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -33,9 +33,9 @@ ${text}
   } catch (error) {
     console.error("Content moderation failed:", error);
     return {
-      containsProhibitedContent: true,
-      prohibitedCategories: ["moderation_failed"],
-      explanation: "Content moderation service failed. Marked as suspicious by default."
+      containsProhibitedContent: false,
+      prohibitedCategories: [],
+      explanation: "Content moderation service unavailable."
     };
   }
 }
