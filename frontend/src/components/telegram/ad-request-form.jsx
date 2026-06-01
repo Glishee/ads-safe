@@ -99,7 +99,7 @@ export default function AdRequestForm() {
   const uploadFile = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://localhost:5000/api/upload", { method: "POST", body: formData });
+    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/upload`, { method: "POST", body: formData });
     return await res.json();
   };
 
@@ -156,6 +156,31 @@ export default function AdRequestForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {channel && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              {channel.avatar_url ? (
+                <img src={channel.avatar_url} alt={channel.name} className="w-16 h-16 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
+                  <span className="text-blue-700 text-2xl font-bold">{channel.name?.charAt(0)}</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold truncate">{channel.name}</h2>
+                {channel.description && <p className="text-sm text-gray-600 line-clamp-2">{channel.description}</p>}
+                <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                  <span>👥 {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}</span>
+                  <span>💰 ${channel.post_price} {getTranslation(language, "perPost")}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>{getTranslation(language, "adRequestTitle")}</CardTitle></CardHeader>
         <CardContent className="space-y-6">
