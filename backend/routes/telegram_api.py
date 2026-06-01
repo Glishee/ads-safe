@@ -32,9 +32,18 @@ def get_channel_info():
     count_res = requests.get(f"{base}/getChatMemberCount", params={"chat_id": username}).json()
     members = count_res.get("result", 0) if count_res.get("ok") else 0
 
+    avatar_url = None
+    photo = chat.get("photo")
+    if photo:
+        file_id = photo.get("big_file_id")
+        file_res = requests.get(f"{base}/getFile", params={"file_id": file_id}).json()
+        if file_res.get("ok"):
+            file_path = file_res["result"]["file_path"]
+            avatar_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
+
     return jsonify({
         "name": chat.get("title", ""),
         "description": chat.get("description", "") or "",
         "subscribers_count": members,
-        "avatar_url": None
+        "avatar_url": avatar_url
     })
