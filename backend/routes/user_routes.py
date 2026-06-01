@@ -53,10 +53,11 @@ def login():
     if not user or not check_password_hash(user['password'], password):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    session['user_id'] = str(user['_id'])  
+    session['user_id'] = str(user['_id'])
 
     return jsonify({
         'message': 'Login successful',
+        'id': str(user['_id']),
         'username': user['username'],
         'role': user['role'],
         'application_role': user.get('application_role', None)
