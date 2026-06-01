@@ -47,56 +47,44 @@ def check_urls_safe_browsing(urls):
         return [], False
 
 
+PROHIBITED_KEYWORDS = {
+    "drugs": ["drug", "cocaine", "heroin", "meth", "mdma", "lsd", "weed", "cannabis", "marijuana", "narcotic", "fentanyl"],
+    "weapons": ["weapon", "gun", "pistol", "rifle", "explosive", "bomb", "grenade", "firearm", "ammo", "ammunition"],
+    "adult": ["pornography", "porn", "xxx", "prostitution", "escort service", "sex for money"],
+    "trafficking": ["human trafficking", "trafficking", "slave"],
+    "csam": ["child pornography", "child porn", "underage sex", "lolita"],
+    "gambling": ["illegal casino", "rigged gambling"],
+}
+
+
 def moderate_text(ad_text):
     urls = extract_urls(ad_text)
     bad_urls, has_bad_links = check_urls_safe_browsing(urls) if urls else ([], False)
 
-    prompt = (
-        "Analyze the following advertisement text and determine if it contains any prohibited content.\n"
-        "Categories to detect include: drugs, human trafficking, prostitution, pornography, child pornography,\n"
-        "weapons, violence, hate speech, or other illegal or unethical content.\n\n"
-        "Respond strictly in JSON format with:\n"
-        "{\n"
-        '  "containsProhibitedContent": boolean,\n'
-        '  "prohibitedCategories": ["..."],\n'
-        '  "explanation": "..." \n'
-        "}\n\n"
-        f"Advertisement:\n\"\"\"\n{ad_text}\n\"\"\""
-    )
+    lower_text = ad_text.lower()
+    detected_categories = []
 
-    try:
-        response = requests.post(
-            "http://127.0.0.1:11434/api/generate",
-            json={
-                "model": "deepseek-r1",
-                "prompt": prompt,
-                "stream": False
-            }
-        )
-        response.raise_for_status()
-        result = response.json()
+    for category, keywords in PROHIBITED_KEYWORDS.items():
+        for kw in keywords:
+            if kw in lower_text:
+                detected_categories.append(category)
+                break
 
-        raw_output = result.get("response", "{}").strip()
-        start = raw_output.find("{")
-        end = raw_output.rfind("}") + 1
-        cleaned_json = raw_output[start:end]
+    if has_bad_links:
+        detected_categories.append("phishing_or_malware")
 
-        parsed = pyjson.loads(cleaned_json)
+    contains_prohibited = len(detected_categories) > 0
 
-        if has_bad_links:
-            parsed["containsProhibitedContent"] = True
-            parsed.setdefault("prohibitedCategories", []).append("phishing_or_malware")
-            parsed["unsafeLinks"] = bad_urls
-
-        return parsed
-
-    except Exception as e:
-        print("LLM moderation failed:", e)
-        return {
-            "containsProhibitedContent": True,
-            "prohibitedCategories": ["moderation_failed"],
-            "explanation": f"Moderation failed: {str(e)}"
-        }
+    return {
+        "containsProhibitedContent": contains_prohibited,
+        "prohibitedCategories": detected_categories,
+        "explanation": (
+            f"Detected prohibited content: {', '.join(detected_categories)}"
+            if detected_categories
+            else "Content appears safe"
+        ),
+        "unsafeLinks": bad_urls if has_bad_links else [],
+    }
 
 
 @llm_bp.route("/llm", methods=["POST"])

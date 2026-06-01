@@ -40,13 +40,36 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
 
-# 👇 Регистрируем блюпринты
 app.register_blueprint(user_bp, url_prefix='/api/auth')
 app.register_blueprint(channel_bp, url_prefix='/api')
 app.register_blueprint(upload_bp, url_prefix="/api")
 app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
-app.register_blueprint(telegram_bp, url_prefix="/api")  # 🆕
+app.register_blueprint(telegram_bp, url_prefix="/api")
+
+@app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
+def ping():
+    from flask import jsonify
+    return jsonify({"ping": "pong", "origin": request.headers.get('Origin', 'none')})
+
+@app.route('/health')
+def health():
+    from flask import jsonify
+    mongo_status = "unknown"
+    mongo_error = None
+    try:
+        from models.user_model import client
+        client.admin.command('ping')
+        mongo_status = "connected"
+    except Exception as e:
+        mongo_status = "error"
+        mongo_error = str(e)
+    return jsonify({
+        "status": "ok",
+        "frontend_url": os.getenv("FRONTEND_URL", "NOT SET"),
+        "mongo": mongo_status,
+        "mongo_error": mongo_error
+    })
 
 @app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
 def ping():

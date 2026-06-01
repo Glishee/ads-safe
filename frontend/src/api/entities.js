@@ -54,6 +54,7 @@ export const api = {
 
 export const TelegramChannel = {
   getAll: () => api.get("/channels"),
+  get: (id) => api.get(`/channels/${id}`),
   getById: (id) => api.get(`/channels/${id}`),
   create: (data) => api.post("/channels", data),
   update: (id, data) => api.put(`/channels/${id}`, data),
@@ -71,7 +72,7 @@ export const AdRequest = {
   getByAdvertiser: (id) => api.get(`/ad-requests?advertiser_id=${id}`),
   getByChannel: (id) => api.get(`/ad-requests?channel_id=${id}`),
 
-  
+
   create: (formData) => apiPost("/ad-requests", formData, true),
 
   update: (id, data) => api.put(`/ad-requests/${id}`, data),
@@ -79,7 +80,7 @@ export const AdRequest = {
   filter: (params) =>
     api.get(`/ad-requests?${new URLSearchParams(params).toString()}`),
 
-  
+
   approve: (id) => api.post(`/ad-requests/${id}/approve`, {}),
   reject: (id, reason = "Rejected by admin") =>
     api.post(`/ad-requests/${id}/reject`, { reason }),
@@ -112,4 +113,5 @@ export const User = {
     localStorage.setItem("user", JSON.stringify(data));
     return data;
   },
+  list: () => api.get("/auth/users"),
 };
