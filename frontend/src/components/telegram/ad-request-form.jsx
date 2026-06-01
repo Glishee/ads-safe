@@ -5,12 +5,9 @@ import { User, AdRequest, TelegramChannel } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Calendar, Clock, ArrowLeft } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { getTranslation } from "@/components/translation/translations";
 import { moderateContent } from "@/components/integrations/ContentModeration";
@@ -67,7 +64,7 @@ export default function AdRequestForm() {
         setChannel(channelData);
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        setSelectedDate(tomorrow);
+        setSelectedDate(tomorrow.toISOString().split("T")[0]);
       } catch (err) {
         console.error(err);
         setError(getTranslation(language, "errorLoadingChannel"));
@@ -119,8 +116,7 @@ export default function AdRequestForm() {
       }
 
       const [h, m] = selectedTime.split(":").map(Number);
-      const publicationTime = new Date(selectedDate);
-      publicationTime.setHours(h, m, 0, 0);
+      const publicationTime = new Date(`${selectedDate}T${selectedTime}:00`);
 
       const moderation = await moderateContent(adText);
       const formData = new FormData();
@@ -187,21 +183,17 @@ export default function AdRequestForm() {
           <Label>{getTranslation(language, "adText")}</Label>
           <Textarea value={adText} onChange={e => setAdText(e.target.value)} />
 
-          <div className="flex gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Calendar className="mr-2" /> {selectedDate ? format(selectedDate, "PPP") : getTranslation(language, "pickDate")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <CalendarComponent selected={selectedDate} onSelect={setSelectedDate} disabled={d => d < new Date()} />
-              </PopoverContent>
-            </Popover>
-
+          <div className="flex flex-wrap gap-4 items-center">
+            <Input
+              type="date"
+              value={selectedDate || ""}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={e => setSelectedDate(e.target.value)}
+              className="w-auto"
+            />
             <div className="flex items-center gap-2">
-              <Clock className="text-gray-400" />
-              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="border rounded px-2 py-1">
+              <Clock className="text-gray-400 h-4 w-4" />
+              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="border rounded px-2 py-1 text-sm">
                 {timeSlots.map(time => <option key={time} value={time}>{time}</option>)}
               </select>
             </div>
