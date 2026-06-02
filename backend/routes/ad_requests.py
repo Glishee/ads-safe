@@ -2,13 +2,38 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 from bson import ObjectId
 import os, json
+import cloudinary
+import cloudinary.uploader
 from werkzeug.utils import secure_filename
 from models.ad_request_model import ad_requests_collection, serialize_ad_request
-from routes.llm import moderate_text  
+from routes.llm import moderate_text
 
 ad_request_bp = Blueprint("ad_request", __name__)
 UPLOAD_FOLDER = "static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+_cloudinary_configured = False
+
+def _configure_cloudinary():
+    global _cloudinary_configured
+    if not _cloudinary_configured:
+        cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+        api_key = os.environ.get("CLOUDINARY_API_KEY")
+        api_secret = os.environ.get("CLOUDINARY_API_SECRET")
+        if cloud_name and api_key and api_secret:
+            cloudinary.config(cloud_name=cloud_name, api_key=api_key, api_secret=api_secret)
+            _cloudinary_configured = True
+    return _cloudinary_configured
+
+def upload_media(file):
+    if _configure_cloudinary():
+        result = cloudinary.uploader.upload(file, folder="ads-safe", resource_type="auto")
+        return result["secure_url"]
+    else:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        return f"/static/uploads/{filename}"
 
 @ad_request_bp.route("/ad-requests", methods=["POST"])
 def create_ad_request():
@@ -18,10 +43,7 @@ def create_ad_request():
 
         media_url = None
         if file:
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
-            media_url = f"/static/uploads/{filename}"
+            media_url = upload_media(file)
 
         def parse_bool(val):
             return str(val).lower() in ["true", "1", "yes"]
