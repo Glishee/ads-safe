@@ -328,9 +328,16 @@ export default function AdRequestPage() {
   }
   
   // Format publication time for display
-  const formattedPublicationTime = request.publication_time ? 
-    format(new Date(request.publication_time), 'PPpp') : 
+  const formattedPublicationTime = request.publication_time ?
+    format(new Date(request.publication_time), 'PPpp') :
     getTranslation(language, "noSpecificTime");
+
+  const resolveMediaUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${url}`;
+  };
+  const mediaUrl = resolveMediaUrl(request.media_url);
   
   // Main content when request is found
   return (
@@ -429,32 +436,29 @@ export default function AdRequestPage() {
           </div>
           
           {/* Media if available */}
-          {request.media_url && (
+          {mediaUrl && (
             <div>
               <h3 className="font-semibold mb-2">{getTranslation(language, "adMedia")}</h3>
               <div className="bg-gray-50 p-4 rounded-md">
-                {/* Display image if it's an image URL */}
-                {request.media_url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-                  <img 
-                    src={request.media_url} 
-                    alt="Advertisement Media" 
+                {mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                  <img
+                    src={mediaUrl}
+                    alt="Advertisement Media"
                     className="max-w-full h-auto rounded-md max-h-80 mx-auto"
                   />
-                ) : request.media_url.match(/\.(mp4|webm)$/i) ? (
-                  /* Display video if it's a video URL */
-                  <video 
-                    controls 
+                ) : mediaUrl.match(/\.(mp4|webm)$/i) ? (
+                  <video
+                    controls
                     className="max-w-full h-auto rounded-md max-h-80 mx-auto"
                   >
-                    <source src={request.media_url} type={`video/${request.media_url.split('.').pop()}`} />
+                    <source src={mediaUrl} type={`video/${mediaUrl.split('.').pop()}`} />
                     {getTranslation(language, "videoNotSupported")}
                   </video>
                 ) : (
-                  /* For other media types, show a link */
                   <Button
                     variant="outline"
                     className="w-full flex items-center justify-center gap-2"
-                    onClick={() => window.open(request.media_url, "_blank")}
+                    onClick={() => window.open(mediaUrl, "_blank")}
                   >
                     <ExternalLink className="h-4 w-4" />
                     {getTranslation(language, "viewMediaFile")}
