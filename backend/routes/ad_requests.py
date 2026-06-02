@@ -8,6 +8,7 @@ from routes.llm import moderate_text
 
 ad_request_bp = Blueprint("ad_request", __name__)
 UPLOAD_FOLDER = "static/uploads"
+BACKEND_PUBLIC_URL = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @ad_request_bp.route("/ad-requests", methods=["POST"])
@@ -21,7 +22,8 @@ def create_ad_request():
             filename = secure_filename(file.filename)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
-            media_url = f"/static/uploads/{filename}"
+            base = BACKEND_PUBLIC_URL if BACKEND_PUBLIC_URL else ""
+            media_url = f"{base}/static/uploads/{filename}"
 
         def parse_bool(val):
             return str(val).lower() in ["true", "1", "yes"]
