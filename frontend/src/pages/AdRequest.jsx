@@ -2,9 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/api/entities";
-import { AdRequest } from "@/api/entities";
-import { TelegramChannel } from "@/api/entities";
+import { User, AdRequest, TelegramChannel, BACKEND_URL } from "@/api/entities";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
@@ -429,40 +427,42 @@ export default function AdRequestPage() {
           </div>
           
           {/* Media if available */}
-          {request.media_url && (
-            <div>
-              <h3 className="font-semibold mb-2">{getTranslation(language, "adMedia")}</h3>
-              <div className="bg-gray-50 p-4 rounded-md">
-                {/* Display image if it's an image URL */}
-                {request.media_url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-                  <img 
-                    src={request.media_url} 
-                    alt="Advertisement Media" 
-                    className="max-w-full h-auto rounded-md max-h-80 mx-auto"
-                  />
-                ) : request.media_url.match(/\.(mp4|webm)$/i) ? (
-                  /* Display video if it's a video URL */
-                  <video 
-                    controls 
-                    className="max-w-full h-auto rounded-md max-h-80 mx-auto"
-                  >
-                    <source src={request.media_url} type={`video/${request.media_url.split('.').pop()}`} />
-                    {getTranslation(language, "videoNotSupported")}
-                  </video>
-                ) : (
-                  /* For other media types, show a link */
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => window.open(request.media_url, "_blank")}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    {getTranslation(language, "viewMediaFile")}
-                  </Button>
-                )}
+          {request.media_url && (() => {
+            const fullMediaUrl = request.media_url.startsWith("http")
+              ? request.media_url
+              : `${BACKEND_URL}${request.media_url}`;
+            return (
+              <div>
+                <h3 className="font-semibold mb-2">{getTranslation(language, "adMedia")}</h3>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  {request.media_url.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+                    <img
+                      src={fullMediaUrl}
+                      alt="Advertisement Media"
+                      className="max-w-full h-auto rounded-md max-h-80 mx-auto"
+                    />
+                  ) : request.media_url.match(/\.(mp4|webm)$/i) ? (
+                    <video
+                      controls
+                      className="max-w-full h-auto rounded-md max-h-80 mx-auto"
+                    >
+                      <source src={fullMediaUrl} type={`video/${request.media_url.split('.').pop()}`} />
+                      {getTranslation(language, "videoNotSupported")}
+                    </video>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => window.open(fullMediaUrl, "_blank")}
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      {getTranslation(language, "viewMediaFile")}
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
           
           {/* Owner notes section - only shown to channel owner and admin */}
           {(isChannelOwner || isAdmin) && (
