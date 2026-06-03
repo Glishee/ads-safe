@@ -20,10 +20,11 @@ def _send_verification_email(to_email, username, token):
 
     api_key = os.getenv("RESEND_API_KEY")
     if not api_key:
-        print(f"[EMAIL VERIFICATION] No RESEND_API_KEY set. Verification link for {to_email}:")
-        print(f"  {verify_link}")
+        print(f"[EMAIL] RESEND_API_KEY not set — verification link for {to_email}:")
+        print(f"[EMAIL] {verify_link}")
         return
 
+    print(f"[EMAIL] Sending verification email to {to_email} via Resend...")
     try:
         import resend
         resend.api_key = api_key
@@ -59,14 +60,19 @@ def _send_verification_email(to_email, username, token):
 </body>
 </html>"""
 
-        resend.Emails.send({
+        result = resend.Emails.send({
             "from": "TeleAds <onboarding@resend.dev>",
             "to": [to_email],
             "subject": "Verify your TeleAds account",
             "html": html_body,
         })
+        print(f"[EMAIL] Sent OK — id={getattr(result, 'id', result)}")
+        print(f"[EMAIL] Verify link: {verify_link}")
     except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send verification email: {e}")
+        import traceback
+        print(f"[EMAIL ERROR] {e}")
+        traceback.print_exc()
+        print(f"[EMAIL] Manual verify link: {verify_link}")
 
 
 # ---------------------------------------------------------------------------
