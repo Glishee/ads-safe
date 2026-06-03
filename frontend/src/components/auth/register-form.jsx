@@ -7,15 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Translate from "@/components/translation/translate";
-import { AlertCircle, Check, ChevronLeft } from "lucide-react";
+import { AlertCircle, Check, ChevronLeft, Mail } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { getTranslation } from "@/components/translation/translations";
 
 export default function RegisterForm({ language }) {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [registered, setRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const [formData, setFormData] = useState({
     email: "",
@@ -64,13 +67,14 @@ export default function RegisterForm({ language }) {
       setLoading(true);
       try {
         await User.register({
-  email: formData.email,
-  password: formData.password,
-  username: formData.username,
-  application_role: formData.application_role
-});
+          email: formData.email,
+          password: formData.password,
+          username: formData.username,
+          application_role: formData.application_role,
+        });
 
-        navigate(createPageUrl("Login"));
+        setRegisteredEmail(formData.email);
+        setRegistered(true);
       } catch (err) {
         const apiUrl = import.meta.env.VITE_API_URL || "localhost (NOT SET)";
         setError(`${err.message || "Request failed"} | API: ${apiUrl}`);
@@ -90,6 +94,27 @@ export default function RegisterForm({ language }) {
       setError("");
     }
   };
+
+  if (registered) {
+    return (
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-2xl shadow-xl text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
+            <Mail className="h-8 w-8 text-blue-500" />
+          </div>
+          <h2 className="text-2xl font-bold">{getTranslation(language, "checkYourEmail")}</h2>
+          <p className="text-gray-500 text-sm">
+            {getTranslation(language, "verificationEmailSent")}{" "}
+            <strong className="text-gray-700">{registeredEmail}</strong>
+          </p>
+          <p className="text-gray-400 text-xs">{getTranslation(language, "verificationEmailInstructions")}</p>
+        </div>
+        <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => navigate(createPageUrl("Login"))}>
+          {getTranslation(language, "goToLogin")}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md p-4 sm:p-8 space-y-6 bg-white rounded-2xl shadow-xl">

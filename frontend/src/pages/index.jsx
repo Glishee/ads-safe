@@ -36,6 +36,8 @@ import ChannelOwnerStats from "./ChannelOwnerStats";
 
 import AccountSettings from "./AccountSettings";
 
+import VerifyEmail from "./VerifyEmail";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -75,6 +77,8 @@ const PAGES = {
     ChannelOwnerStats: ChannelOwnerStats,
 
     AccountSettings: AccountSettings,
+
+    VerifyEmail: VerifyEmail,
 
 }
 
@@ -137,6 +141,8 @@ function PagesContent() {
                 <Route path="/ChannelOwnerStats" element={<ChannelOwnerStats />} />
 
                 <Route path="/AccountSettings" element={<AccountSettings />} />
+
+                <Route path="/VerifyEmail" element={<VerifyEmail />} />
 
             </Routes>
         </Layout>

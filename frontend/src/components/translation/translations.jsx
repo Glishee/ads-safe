@@ -542,6 +542,23 @@ export const translations = {
     currentPasswordIncorrect: "Current password is incorrect.",
     nothingToUpdate: "Nothing to update.",
     settingsLink: "Settings",
+
+    // Email verification
+    checkYourEmail: "Check your email",
+    verificationEmailSent: "We sent a verification link to",
+    verificationEmailInstructions: "Click the link in the email to activate your account. Check your spam folder if you don't see it.",
+    goToLogin: "Go to Login",
+    resendEmail: "Resend email",
+    emailResent: "Verification email resent. Check your inbox.",
+    verifyingEmail: "Verifying your email...",
+    emailVerified: "Email verified!",
+    emailVerifiedMsg: "Your account is ready. You can now log in.",
+    emailVerificationFailed: "Verification failed",
+    invalidOrExpiredToken: "This link is invalid or has already been used.",
+    emailNotVerified: "Please verify your email before logging in.",
+    resendVerificationEmail: "Resend verification email",
+    enterEmailToResend: "Enter your email to resend the verification link.",
+    send: "Send",
   },
   
   he: {
@@ -1088,6 +1105,23 @@ export const translations = {
     currentPasswordIncorrect: "הסיסמה הנוכחית שגויה.",
     nothingToUpdate: "אין מה לעדכן.",
     settingsLink: "הגדרות",
+
+    // Email verification
+    checkYourEmail: "בדוק את האימייל שלך",
+    verificationEmailSent: "שלחנו קישור אימות ל",
+    verificationEmailInstructions: "לחץ על הקישור באימייל להפעלת החשבון. בדוק את תיקיית הספאם אם אינך רואה אותו.",
+    goToLogin: "עבור להתחברות",
+    resendEmail: "שלח שוב",
+    emailResent: "אימייל אימות נשלח שוב. בדוק את תיבת הדואר שלך.",
+    verifyingEmail: "מאמת את האימייל שלך...",
+    emailVerified: "האימייל אומת!",
+    emailVerifiedMsg: "החשבון שלך מוכן. כעת תוכל להתחבר.",
+    emailVerificationFailed: "האימות נכשל",
+    invalidOrExpiredToken: "הקישור אינו תקין או כבר נוצל.",
+    emailNotVerified: "אנא אמת את האימייל שלך לפני ההתחברות.",
+    resendVerificationEmail: "שלח מחדש אימייל אימות",
+    enterEmailToResend: "הזן את האימייל שלך לשליחה מחדש של קישור האימות.",
+    send: "שלח",
   }
 };
 

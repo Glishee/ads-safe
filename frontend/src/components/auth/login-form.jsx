@@ -7,26 +7,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Translate from "@/components/translation/translate";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Mail, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getTranslation } from "@/components/translation/translations";
 
 export default function LoginForm({ language }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading]   = useState(false);
+  const [error, setError]           = useState("");
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+
+  // Resend flow
+  const [resendEmail, setResendEmail]   = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [showResendForm, setShowResendForm] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setEmailNotVerified(false);
 
     try {
-      // In a real implementation, this would be a real authentication call
-      // For now, we'll simulate it with User.login()
       const user = await User.login({ email, password });
-
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
       } else if (user.application_role === "channel_owner") {
@@ -35,10 +41,30 @@ export default function LoginForm({ language }) {
         navigate(createPageUrl("AdvertiserDashboard"));
       }
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
-      console.error("Login error:", err);
+      let body = {};
+      try { body = JSON.parse(err.message); } catch (_) {}
+      if (body.email_not_verified) {
+        setEmailNotVerified(true);
+        setResendEmail(email);
+      } else {
+        setError(err.message || "Login failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async (e) => {
+    e.preventDefault();
+    setResendLoading(true);
+    setResendSuccess(false);
+    try {
+      await User.resendVerification(resendEmail);
+      setResendSuccess(true);
+    } catch (err) {
+      setError(err.message || "Failed to resend.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -52,6 +78,45 @@ export default function LoginForm({ language }) {
           <Translate language={language} textKey="welcome" />
         </p>
       </div>
+
+      {/* Email not verified warning */}
+      {emailNotVerified && (
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 space-y-3">
+          <div className="flex items-start gap-2 text-yellow-800">
+            <Mail className="h-5 w-5 shrink-0 mt-0.5" />
+            <p className="text-sm font-medium">{getTranslation(language, "emailNotVerified")}</p>
+          </div>
+
+          {resendSuccess ? (
+            <div className="flex items-center gap-2 text-green-700 text-sm">
+              <CheckCircle2 className="h-4 w-4" />
+              {getTranslation(language, "emailResent")}
+            </div>
+          ) : showResendForm ? (
+            <form onSubmit={handleResend} className="flex gap-2">
+              <Input
+                type="email"
+                value={resendEmail}
+                onChange={e => setResendEmail(e.target.value)}
+                className="flex-1 h-8 text-sm"
+                required
+              />
+              <Button type="submit" size="sm" disabled={resendLoading} className="shrink-0">
+                {resendLoading ? "..." : getTranslation(language, "send")}
+              </Button>
+            </form>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-yellow-300 text-yellow-800 hover:bg-yellow-100 w-full"
+              onClick={() => setShowResendForm(true)}
+            >
+              {getTranslation(language, "resendVerificationEmail")}
+            </Button>
+          )}
+        </div>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -106,8 +171,8 @@ export default function LoginForm({ language }) {
         <span className="text-gray-500">
           <Translate language={language} textKey="noAccount" />
         </span>{" "}
-        <Button 
-          variant="link" 
+        <Button
+          variant="link"
           className="p-0"
           onClick={() => navigate(createPageUrl("Register"))}
         >

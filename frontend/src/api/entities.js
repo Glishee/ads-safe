@@ -120,4 +120,6 @@ export const User = {
     localStorage.setItem("user", JSON.stringify(updated));
     return updated;
   },
+  verifyEmail: (token) => api.get(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+  resendVerification: (email) => api.post("/auth/resend-verification", { email }),
 };
