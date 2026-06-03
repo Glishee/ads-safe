@@ -75,26 +75,8 @@ export default function AdRequestPage() {
         // Fetch advertiser data
         if (requestData.advertiser_id) {
           try {
-            // In a real app, we'd fetch user details from the User API
-            // For now, try to fetch or use a placeholder
-            let advertiserData;
-            try {
-              const allUsers = await User.list();
-              advertiserData = allUsers.find(u => u.id === requestData.advertiser_id);
-            } catch (e) {
-              console.error("Error fetching all users:", e);
-            }
-            
-            if (advertiserData) {
-              setAdvertiser(advertiserData);
-            } else {
-              // Fallback
-              setAdvertiser({
-                id: requestData.advertiser_id,
-                username: "Advertiser",
-                email: "advertiser@example.com"
-              });
-            }
+            const advertiserData = await User.getById(requestData.advertiser_id);
+            setAdvertiser(advertiserData);
           } catch (error) {
             console.error("Error fetching advertiser:", error);
           }

@@ -114,4 +114,5 @@ export const User = {
     return data;
   },
   list: () => api.get("/auth/users"),
+  getById: (id) => api.get(`/auth/users/${id}`),
 };

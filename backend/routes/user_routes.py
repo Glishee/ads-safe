@@ -89,6 +89,28 @@ def logout():
     return jsonify({'message': 'Logged out'}), 200
 
 
+@user_bp.route('/users/<user_id>', methods=['GET'])
+def get_user_by_id(user_id):
+    requester_id = session.get("user_id")
+    if not requester_id:
+        return jsonify({'message': 'Not logged in'}), 401
+
+    try:
+        user = users_collection.find_one({'_id': ObjectId(user_id)})
+    except Exception:
+        return jsonify({'message': 'Invalid user ID'}), 400
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    return jsonify({
+        'id': str(user['_id']),
+        'username': user.get('username'),
+        'email': user.get('email'),
+        'application_role': user.get('application_role'),
+    }), 200
+
+
 @user_bp.route('/users', methods=['GET'])
 def list_users():
     user_id = session.get("user_id")
