@@ -30,7 +30,9 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <LoginForm language={language} />
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 w-full flex justify-center">
+        <LoginForm language={language} />
+      </div>
     </div>
   );
 }

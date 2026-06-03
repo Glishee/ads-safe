@@ -5,12 +5,9 @@ import { User, AdRequest, TelegramChannel } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Calendar, Clock, ArrowLeft } from "lucide-react";
+import { AlertCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { getTranslation } from "@/components/translation/translations";
 import { moderateContent } from "@/components/integrations/ContentModeration";
@@ -67,7 +64,7 @@ export default function AdRequestForm() {
         setChannel(channelData);
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        setSelectedDate(tomorrow);
+        setSelectedDate(tomorrow.toISOString().split("T")[0]);
       } catch (err) {
         console.error(err);
         setError(getTranslation(language, "errorLoadingChannel"));
@@ -99,7 +96,7 @@ export default function AdRequestForm() {
   const uploadFile = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("http://localhost:5000/api/upload", { method: "POST", body: formData });
+    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/upload`, { method: "POST", body: formData });
     return await res.json();
   };
 
@@ -119,8 +116,7 @@ export default function AdRequestForm() {
       }
 
       const [h, m] = selectedTime.split(":").map(Number);
-      const publicationTime = new Date(selectedDate);
-      publicationTime.setHours(h, m, 0, 0);
+      const publicationTime = new Date(`${selectedDate}T${selectedTime}:00`);
 
       const moderation = await moderateContent(adText);
       const formData = new FormData();
@@ -156,27 +152,48 @@ export default function AdRequestForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+
+      {channel && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              {channel.avatar_url ? (
+                <img src={channel.avatar_url} alt={channel.name} className="w-16 h-16 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
+                  <span className="text-blue-700 text-2xl font-bold">{channel.name?.charAt(0)}</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-bold truncate">{channel.name}</h2>
+                {channel.description && <p className="text-sm text-gray-600 line-clamp-2">{channel.description}</p>}
+                <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                  <span>👥 {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}</span>
+                  <span>💰 ${channel.post_price} {getTranslation(language, "perPost")}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>{getTranslation(language, "adRequestTitle")}</CardTitle></CardHeader>
         <CardContent className="space-y-6">
           <Label>{getTranslation(language, "adText")}</Label>
           <Textarea value={adText} onChange={e => setAdText(e.target.value)} />
 
-          <div className="flex gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Calendar className="mr-2" /> {selectedDate ? format(selectedDate, "PPP") : getTranslation(language, "pickDate")}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent>
-                <CalendarComponent selected={selectedDate} onSelect={setSelectedDate} disabled={d => d < new Date()} />
-              </PopoverContent>
-            </Popover>
-
+          <div className="flex flex-wrap gap-4 items-center">
+            <Input
+              type="date"
+              value={selectedDate || ""}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={e => setSelectedDate(e.target.value)}
+              className="w-auto"
+            />
             <div className="flex items-center gap-2">
-              <Clock className="text-gray-400" />
-              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="border rounded px-2 py-1">
+              <Clock className="text-gray-400 h-4 w-4" />
+              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} className="border rounded px-2 py-1 text-sm">
                 {timeSlots.map(time => <option key={time} value={time}>{time}</option>)}
               </select>
             </div>

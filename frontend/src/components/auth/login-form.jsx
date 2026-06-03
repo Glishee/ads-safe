@@ -25,19 +25,17 @@ export default function LoginForm({ language }) {
     try {
       // In a real implementation, this would be a real authentication call
       // For now, we'll simulate it with User.login()
-      await User.login({ email, password });
-      
-      // Redirect based on user role - would check this after login
-      const user = await User.me();
+      const user = await User.login({ email, password });
+
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
-      } else if (user.role === "channel_owner") {
+      } else if (user.application_role === "channel_owner") {
         navigate(createPageUrl("ChannelOwnerDashboard"));
       } else {
         navigate(createPageUrl("AdvertiserDashboard"));
       }
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
       console.error("Login error:", err);
     } finally {
       setIsLoading(false);
@@ -91,9 +89,9 @@ export default function LoginForm({ language }) {
             className="w-full"
           />
         </div>
-        <Button 
-          type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700"
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 transition-transform active:scale-95"
           disabled={isLoading}
         >
           {isLoading ? (

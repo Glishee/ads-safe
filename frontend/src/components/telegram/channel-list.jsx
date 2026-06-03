@@ -128,12 +128,14 @@ export default function ChannelList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredChannels.map(channel => (
-            <ChannelCard
+          {filteredChannels.map((channel, index) => (
+            <div
               key={channel.id}
-              channel={channel}
-              language={language}
-            />
+              className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
+              <ChannelCard channel={channel} language={language} />
+            </div>
           ))}
         </div>
       )}

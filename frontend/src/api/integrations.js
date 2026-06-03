@@ -4,7 +4,7 @@ import { apiPost } from './adsGramm'
 export const UploadFile = file => {
 	const formData = new FormData()
 	formData.append('file', file)
-	return fetch('http://localhost:5000/upload', {
+	return fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/upload`, {
 		method: 'POST',
 		body: formData,
 		credentials: 'include',

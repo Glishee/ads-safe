@@ -32,7 +32,7 @@ export default function ChannelCard({ channel }) {
   };
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg flex flex-col h-full">
+    <Card className="overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1 flex flex-col h-full">
       <div className="relative h-32 bg-gradient-to-r from-blue-400 to-purple-500">
         {channel.avatar_url ? (
           <img 

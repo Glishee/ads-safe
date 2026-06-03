@@ -57,7 +57,7 @@ export default function AdminChannels() {
           setLanguage(userData.language_preference);
         }
         
-        const allChannels = await TelegramChannel.list("-created_date");
+        const allChannels = await TelegramChannel.getAll();
         setChannels(allChannels);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -103,7 +103,7 @@ export default function AdminChannels() {
       await TelegramChannel.update(selectedChannel.id, updateData);
       
       // Refresh channels list
-      const updatedChannels = await TelegramChannel.list("-created_date");
+      const updatedChannels = await TelegramChannel.getAll();
       setChannels(updatedChannels);
     } catch (err) {
       console.error(`Error ${confirmAction}ing channel:`, err);

@@ -46,16 +46,16 @@ export default function Home() {
       {/* Hero section */}
       <section className="pt-12 pb-16 md:pt-20 md:pb-32 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight">
+          <h1 className="animate-in fade-in slide-in-from-bottom-4 duration-700 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight">
             <Translate language={language} textKey="heroTitle" />
           </h1>
-          <p className="text-lg sm:text-xl md:text-2xl text-blue-100 mb-8 md:mb-12 max-w-3xl mx-auto">
+          <p className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 text-lg sm:text-xl md:text-2xl text-blue-100 mb-8 md:mb-12 max-w-3xl mx-auto">
             <Translate language={language} textKey="heroSubtitle" />
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
+          <div className="animate-in fade-in duration-700 delay-300 flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
               onClick={goToDashboard}
-              className="text-lg py-6 px-8 bg-white text-blue-700 hover:bg-blue-50 shadow-lg flex items-center gap-2"
+              className="text-lg py-6 px-8 bg-white text-blue-700 hover:bg-blue-50 shadow-lg flex items-center gap-2 transition-transform hover:scale-105 active:scale-95"
             >
               <Translate language={language} textKey="getStarted" />
               <ArrowRight className="h-5 w-5" />
@@ -77,7 +77,7 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
               <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <MessageSquare className="h-8 w-8" />
               </div>
@@ -88,8 +88,8 @@ export default function Home() {
                 <Translate language={language} textKey="connectChannelsDesc" />
               </p>
             </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg transition-shadow">
+
+            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
               <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Users className="h-8 w-8" />
               </div>
@@ -100,8 +100,8 @@ export default function Home() {
                 <Translate language={language} textKey="targetAudienceDesc" />
               </p>
             </div>
-            
-            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg transition-shadow">
+
+            <div className="bg-white rounded-xl shadow-md p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Zap className="h-8 w-8" />
               </div>
@@ -234,7 +234,7 @@ export default function Home() {
           </p>
           <Button
             onClick={() => navigate(createPageUrl("Register"))}
-            className="text-base sm:text-lg py-4 sm:py-6 px-6 sm:px-8 bg-white text-blue-700 hover:bg-blue-50"
+            className="text-base sm:text-lg py-4 sm:py-6 px-6 sm:px-8 bg-white text-blue-700 hover:bg-blue-50 transition-transform hover:scale-105 active:scale-95"
           >
             <Translate language={language} textKey="createAccount" />
           </Button>
