@@ -182,16 +182,25 @@ function LayoutContent({ children, currentPageName }) {
   }
 
   const currentPageDisplayName = () => {
-    if (!user) return currentPageName;
-
-    let baseName = currentPageName;
-    if (currentPageName === "ChannelOwnerDashboard") baseName = "dashboard";
-    else if (currentPageName === "ChannelOwnerAdRequests") baseName = "adRequests";
-    else if (currentPageName === "ChannelOwnerStats") baseName = "statistics";
-    // Add other page name mappings if needed
-
-    return getTranslation(language, baseName);
-  }
+    const pageMap = {
+      ChannelOwnerDashboard: "dashboard",
+      ChannelOwnerAdRequests: "adRequests",
+      ChannelOwnerStats: "statistics",
+      AdminDashboard: "dashboard",
+      AdminChannels: "pendingChannels",
+      AdminUsers: "allUsers",
+      AdminSettings: "systemSettings",
+      AdvertiserDashboard: "dashboard",
+      ChannelsList: "channels",
+      MyOrders: "myOrders",
+      AdvertiserStats: "statistics",
+      MyChannels: "myChannels",
+      AddChannel: "addChannel",
+      AdRequest: "adRequests",
+    };
+    const key = pageMap[currentPageName] || currentPageName;
+    return getTranslation(language, key) || currentPageName;
+  };
 
   return (
     <RTLProvider language={language}>
@@ -250,19 +259,20 @@ function LayoutContent({ children, currentPageName }) {
         {shouldShowSidebar ? (
           <div className="flex h-screen overflow-hidden">
             {sidebarOpen && (
-              <div 
+              <div
                 className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
                 onClick={() => setSidebarOpen(false)}
               />
             )}
-            
+
+            {/* Sidebar — desktop always visible, mobile slide-over */}
             <aside className={`
-              fixed top-0 ${language === "he" ? "right-0" : "left-0"} 
+              fixed top-0 ${language === "he" ? "right-0" : "left-0"}
               w-64 h-full bg-white border-${language === "he" ? "l" : "r"} z-50
               transform transition-transform duration-200 ease-in-out
               md:relative md:translate-x-0
-              ${language === "he" 
-                ? (sidebarOpen ? "translate-x-0" : "translate-x-full") 
+              ${language === "he"
+                ? (sidebarOpen ? "translate-x-0" : "translate-x-full")
                 : (sidebarOpen ? "translate-x-0" : "-translate-x-full")
               }
             `}>
@@ -277,44 +287,52 @@ function LayoutContent({ children, currentPageName }) {
                   <X className="h-5 w-5" />
                 </Button>
               </div>
-              
+
               <div className="p-4 border-b">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                     <UserIcon className="h-5 w-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="font-medium">{user?.username || user?.full_name}</p>
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{user?.username || user?.full_name}</p>
                     <p className="text-xs text-gray-500">
-                      {isAdmin ? getTranslation(language, "adminRole") : 
-                       isChannelOwner ? getTranslation(language, "channelOwnerRole") : 
+                      {isAdmin ? getTranslation(language, "adminRole") :
+                       isChannelOwner ? getTranslation(language, "channelOwnerRole") :
                        isAdvertiser ? getTranslation(language, "advertiserRole") :
-                       getTranslation(language, "userRole")} {/* Fallback */}
+                       getTranslation(language, "userRole")}
                     </p>
                   </div>
                 </div>
               </div>
-              
+
               <nav className="p-4 space-y-1">
-                {getNavLinks().map((link) => (
-                  <Link
-                    key={link.path}
-                    to={createPageUrl(link.path)}
-                    className={`
-                      flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
-                      ${currentPageName === link.path.split('?')[0]
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-700 hover:bg-gray-100"
-                      }
-                    `}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    {link.icon}
-                    <span>{getTranslation(language, link.name)}</span>
-                  </Link>
-                ))}
+                {getNavLinks().map((link) => {
+                  const isActive = currentPageName === link.path.split('?')[0];
+                  return (
+                    <Link
+                      key={link.path}
+                      to={createPageUrl(link.path)}
+                      className={`
+                        flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors
+                        ${isActive
+                          ? "bg-blue-50 text-blue-700 font-medium"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                        }
+                      `}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <span className={isActive ? "text-blue-600" : "text-gray-400"}>
+                        {link.icon}
+                      </span>
+                      <span>{getTranslation(language, link.name)}</span>
+                      {isActive && (
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-600" />
+                      )}
+                    </Link>
+                  );
+                })}
               </nav>
-              
+
               <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
                 <Button
                   variant="outline"
@@ -326,31 +344,24 @@ function LayoutContent({ children, currentPageName }) {
                 </Button>
               </div>
             </aside>
-            
+
             {/* Main content */}
             <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-              {/* Mobile header */}
-              <header className="md:hidden bg-white shadow-sm p-4 flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(true)}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-                
-                <h1 className="text-lg font-semibold">
+              {/* Mobile top header — title + user menu */}
+              <header className="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
+                <h1 className="text-base font-semibold truncate">
                   {currentPageName && currentPageDisplayName()}
                 </h1>
-                
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <UserIcon className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                        <UserIcon className="h-4 w-4 text-blue-600" />
+                      </div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{user?.username || user?.full_name}</DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel className="truncate">{user?.username || user?.full_name}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />
@@ -359,12 +370,40 @@ function LayoutContent({ children, currentPageName }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </header>
-              
-              {/* Page content */}
-              <main className="flex-1 p-4 md:p-6 overflow-auto">
+
+              {/* Page content — pb-16 on mobile to clear bottom nav */}
+              <main className="flex-1 p-4 md:p-6 overflow-auto pb-20 md:pb-6">
                 {children}
               </main>
             </div>
+
+            {/* Mobile bottom navigation bar */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex items-stretch">
+              {getNavLinks().map((link) => {
+                const isActive = currentPageName === link.path.split('?')[0];
+                return (
+                  <Link
+                    key={link.path}
+                    to={createPageUrl(link.path)}
+                    className={`
+                      relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5
+                      text-xs transition-colors min-w-0
+                      ${isActive ? "text-blue-600" : "text-gray-400 hover:text-gray-600"}
+                    `}
+                  >
+                    {isActive && (
+                      <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-b-full" />
+                    )}
+                    <span className={`transition-transform ${isActive ? "scale-110" : ""}`}>
+                      {link.icon}
+                    </span>
+                    <span className="truncate w-full text-center px-1 leading-tight">
+                      {getTranslation(language, link.name)}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
         ) : (
           <main className={isPublicPage ? "" : "pt-16"}>
