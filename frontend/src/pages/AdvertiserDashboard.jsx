@@ -229,21 +229,19 @@ export default function AdvertiserDashboard() {
               ) : (
                 <div className="space-y-4">
                   {requests.slice(0, 5).map(request => (
-                    <div key={request.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                      <div>
-                        <p className="font-medium">{channels[request.channel_id]?.name || getTranslation(language, "unknownChannel")}</p>
-                        <p className="text-sm text-gray-500">
+                    <div key={request.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{channels[request.channel_id]?.name || getTranslation(language, "unknownChannel")}</p>
+                        <p className="text-sm text-gray-500 truncate">
                           ${request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
                         </p>
                       </div>
-                      <div>
-                        <Badge 
-                          variant="outline"
-                          className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border`}
-                        >
-                          {getTranslation(language, request.status)}
-                        </Badge>
-                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border shrink-0`}
+                      >
+                        {getTranslation(language, request.status)}
+                      </Badge>
                     </div>
                   ))}
                   

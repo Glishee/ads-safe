@@ -6,16 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { 
-  DollarSign, 
-  Clock, 
-  CheckCircle, 
+import {
+  DollarSign,
+  Clock,
+  CheckCircle,
   ArrowRight,
   MessageSquare,
   Plus,
-  Home,
-  BarChart2, // For stats link
-  ListOrdered // For ad requests link
+  BarChart2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getTranslation } from "@/components/translation/translations";
@@ -103,25 +101,22 @@ export default function ChannelOwnerDashboard() {
 
   if (loading) {
     return (
-      <div className="space-y-8 p-4 md:p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="space-y-6 p-4 md:p-6">
+        <div className="flex justify-between items-center gap-4">
           <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-7 w-52 mb-2" />
+            <Skeleton className="h-4 w-36" />
           </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-32" />
-          </div>
+          <Skeleton className="h-9 w-28 shrink-0" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-28 w-full" />
-          <Skeleton className="h-28 w-full" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-56 w-full" />
+          <Skeleton className="h-56 w-full" />
         </div>
       </div>
     );
@@ -131,58 +126,35 @@ export default function ChannelOwnerDashboard() {
   const displayedChannels = channels.slice(0, 3);
 
   return (
-    <div className="space-y-8 p-4 md:p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6 p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
+          <h1 className="text-xl md:text-2xl font-bold">
             {getTranslation(language, "channelOwnerDashboard")}
           </h1>
-          <p className="text-gray-500 mt-1">
-            {language === "en" 
+          <p className="text-sm text-gray-500 mt-0.5">
+            {language === "en"
               ? `Welcome back, ${user?.username || user?.full_name}!`
               : `ברוך שובך, ${user?.username || user?.full_name}!`
             }
           </p>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => handleNavigation("MyChannels")}
-            className="flex items-center gap-2"
-          >
-            <MessageSquare className="h-4 w-4" />
-            {getTranslation(language, "myChannels")}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleNavigation("ChannelOwnerAdRequests")}
-            className="flex items-center gap-2"
-          >
-            <ListOrdered className="h-4 w-4" />
-            {getTranslation(language, "adRequests")}
-          </Button>
-           <Button
-            variant="outline"
-            onClick={() => handleNavigation("ChannelOwnerStats")}
-            className="flex items-center gap-2"
-          >
-            <BarChart2 className="h-4 w-4" />
-            {getTranslation(language, "statistics")}
-          </Button>
-          <Button 
-            onClick={() => handleNavigation("AddChannel")}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            {getTranslation(language, "addChannel")}
-          </Button>
-        </div>
+        <Button
+          onClick={() => handleNavigation("AddChannel")}
+          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shrink-0"
+          size="sm"
+        >
+          <Plus className="h-4 w-4" />
+          {getTranslation(language, "addChannel")}
+        </Button>
       </div>
       
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
+      {/* Stats Cards — clickable shortcuts */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card
+          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          onClick={() => handleNavigation("ChannelOwnerStats")}
+        >
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-medium text-gray-500">
               {getTranslation(language, "totalEarnings")}
@@ -194,8 +166,11 @@ export default function ChannelOwnerDashboard() {
             <p className="text-xs text-gray-500">{getTranslation(language, "fromCompletedAds")}</p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          onClick={() => handleNavigation("ChannelOwnerAdRequests")}
+        >
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-medium text-gray-500">
               {getTranslation(language, "pendingRequests")}
@@ -204,11 +179,14 @@ export default function ChannelOwnerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{getPendingOwnerActionRequestsCount()}</div>
-             <p className="text-xs text-gray-500">{getTranslation(language, "waitingForApproval")}</p>
+            <p className="text-xs text-gray-500">{getTranslation(language, "waitingForApproval")}</p>
           </CardContent>
         </Card>
-        
-        <Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+          onClick={() => handleNavigation("MyChannels")}
+        >
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-sm font-medium text-gray-500">
               {getTranslation(language, "activeChannels")}
@@ -217,18 +195,18 @@ export default function ChannelOwnerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{getActiveChannelsCount()}</div>
-             <p className="text-xs text-gray-500">{getTranslation(language, "approvedChannels")}</p>
+            <p className="text-xs text-gray-500">{getTranslation(language, "approvedChannels")}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Quick View Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{getTranslation(language, "recentRequests")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base">{getTranslation(language, "recentRequests")}</CardTitle>
             {adRequests.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => handleNavigation("ChannelOwnerAdRequests")}>
+              <Button variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleNavigation("ChannelOwnerAdRequests")}>
                 {getTranslation(language, "viewAll")} ({adRequests.length}) <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             )}
@@ -242,17 +220,17 @@ export default function ChannelOwnerDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentAdRequests.map(request => (
-                  <div key={request.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                    <div>
-                      <p className="font-medium text-sm">{channels.find(c => c.id === request.channel_id)?.name || getTranslation(language, "unknownChannel")}</p>
-                      <p className="text-xs text-gray-500 truncate max-w-xs" title={request.ad_text}>
+                  <div key={request.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{channels.find(c => c.id === request.channel_id)?.name || getTranslation(language, "unknownChannel")}</p>
+                      <p className="text-xs text-gray-500 truncate" title={request.ad_text}>
                         {request.ad_text}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         ${request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs`}>
+                    <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs shrink-0`}>
                       {getTranslation(language, request.status)}
                     </Badge>
                   </div>
@@ -263,10 +241,10 @@ export default function ChannelOwnerDashboard() {
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{getTranslation(language, "myChannels")}</CardTitle>
-             {channels.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => handleNavigation("MyChannels")}>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base">{getTranslation(language, "myChannels")}</CardTitle>
+            {channels.length > 0 && (
+              <Button variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleNavigation("MyChannels")}>
                 {getTranslation(language, "viewAll")} ({channels.length}) <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             )}
@@ -288,8 +266,8 @@ export default function ChannelOwnerDashboard() {
             ) : (
               <div className="space-y-3">
                 {displayedChannels.map(channel => (
-                  <div key={channel.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                    <div className="flex items-center gap-3">
+                  <div key={channel.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-50 shrink-0">
                         {channel.avatar_url ? (
                           <img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover"/>
@@ -299,14 +277,14 @@ export default function ChannelOwnerDashboard() {
                           </div>
                         )}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium text-sm truncate" title={channel.name}>{channel.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 truncate">
                           ${channel.post_price?.toFixed(2)} • {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className={`${channel.is_approved ? statusBadgeColors.approved : (channel.is_rejected ? statusBadgeColors.rejected : statusBadgeColors.pending)} border text-xs`}>
+                    <Badge variant="outline" className={`${channel.is_approved ? statusBadgeColors.approved : (channel.is_rejected ? statusBadgeColors.rejected : statusBadgeColors.pending)} border text-xs shrink-0`}>
                       {getTranslation(language, channel.is_approved ? 'approved' : (channel.is_rejected ? 'rejected' : 'pending'))}
                     </Badge>
                   </div>

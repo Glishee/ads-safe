@@ -44,12 +44,12 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero section */}
-      <section className="pt-20 pb-32 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+      <section className="pt-12 pb-16 md:pt-20 md:pb-32 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="animate-in fade-in slide-in-from-bottom-4 duration-700 text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+          <h1 className="animate-in fade-in slide-in-from-bottom-4 duration-700 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight">
             <Translate language={language} textKey="heroTitle" />
           </h1>
-          <p className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
+          <p className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-150 text-lg sm:text-xl md:text-2xl text-blue-100 mb-8 md:mb-12 max-w-3xl mx-auto">
             <Translate language={language} textKey="heroSubtitle" />
           </p>
           <div className="animate-in fade-in duration-700 delay-300 flex flex-col sm:flex-row gap-4 justify-center">
@@ -119,7 +119,7 @@ export default function Home() {
      
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center">
             <div>
               <h2 className="text-3xl font-bold mb-6">
                 <Translate language={language} textKey="forAdvertisers" />
@@ -162,20 +162,20 @@ export default function Home() {
             </div>
             
             <div className="order-first md:order-last">
-              <img 
-                src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&q=75&fit=crop&w=600" 
-                alt="Advertisers dashboard" 
-                className="rounded-xl shadow-lg"
+              <img
+                src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&q=75&fit=crop&w=600"
+                alt="Advertisers dashboard"
+                className="rounded-xl shadow-lg w-full h-auto"
               />
             </div>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-16 items-center mt-32">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-16 items-center mt-16 md:mt-32">
             <div>
-              <img 
-                src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&q=75&fit=crop&w=600" 
-                alt="Channel owners" 
-                className="rounded-xl shadow-lg"
+              <img
+                src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&q=75&fit=crop&w=600"
+                alt="Channel owners"
+                className="rounded-xl shadow-lg w-full h-auto"
               />
             </div>
             
@@ -224,17 +224,17 @@ export default function Home() {
       </section>
       
       {/* CTA section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-600 to-blue-700 text-white text-center">
+      <section className="py-12 md:py-20 bg-gradient-to-br from-indigo-600 to-blue-700 text-white text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 md:mb-6">
             <Translate language={language} textKey="readyToStart" />
           </h2>
-          <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-blue-100 mb-8 md:mb-10 max-w-2xl mx-auto">
             <Translate language={language} textKey="joinCommunity" />
           </p>
           <Button
             onClick={() => navigate(createPageUrl("Register"))}
-            className="text-lg py-6 px-8 bg-white text-blue-700 hover:bg-blue-50 transition-transform hover:scale-105 active:scale-95"
+            className="text-base sm:text-lg py-4 sm:py-6 px-6 sm:px-8 bg-white text-blue-700 hover:bg-blue-50 transition-transform hover:scale-105 active:scale-95"
           >
             <Translate language={language} textKey="createAccount" />
           </Button>
@@ -252,14 +252,14 @@ export default function Home() {
               </p>
             </div>
             
-            <div className="flex gap-6">
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
+            <div className="flex flex-wrap gap-2 sm:gap-4 justify-center md:justify-end">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white text-sm">
                 <Translate language={language} textKey="termsOfService" />
               </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white text-sm">
                 <Translate language={language} textKey="privacyPolicy" />
               </Button>
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
+              <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white text-sm">
                 <Translate language={language} textKey="contact" />
               </Button>
             </div>

@@ -278,15 +278,15 @@ export default function ChannelOwnerAdRequests() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="rejectionReason" className="text-right col-span-1">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-2 sm:gap-4">
+              <Label htmlFor="rejectionReason" className="sm:text-right sm:pt-2 col-span-1">
                 {getTranslation(language, "reason")}
               </Label>
               <Textarea
                 id="rejectionReason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                className="col-span-3"
+                className="col-span-1 sm:col-span-3"
                 placeholder={getTranslation(language, "optionalReasonPlaceholder")}
               />
             </div>
