@@ -256,7 +256,7 @@ function LayoutContent({ children, currentPageName }) {
         )}
 
         {shouldShowSidebar ? (
-          <div className="flex h-screen overflow-hidden">
+          <div className="flex h-[100dvh] overflow-hidden">
             {sidebarOpen && (
               <div
                 className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
@@ -353,7 +353,7 @@ function LayoutContent({ children, currentPageName }) {
             </aside>
 
             {/* Main content */}
-            <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
               {/* Mobile top header — hamburger + title + user menu */}
               <header className="md:hidden bg-white border-b px-3 py-3 flex items-center gap-2 shrink-0">
                 <Button
@@ -386,8 +386,7 @@ function LayoutContent({ children, currentPageName }) {
                 </DropdownMenu>
               </header>
 
-              {/* Page content — pb-16 on mobile to clear bottom nav */}
-              <main className="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden w-full min-w-0">
+              <main className="flex-1 p-4 md:p-6 pb-8 overflow-y-auto overflow-x-hidden w-full min-w-0">
                 {children}
               </main>
             </div>
