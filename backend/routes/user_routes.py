@@ -60,7 +60,7 @@ def _send_verification_email(to_email, username, token):
 </html>"""
 
         resend.Emails.send({
-            "from": "TeleAds <noreply@teleads.app>",
+            "from": "TeleAds <onboarding@resend.dev>",
             "to": [to_email],
             "subject": "Verify your TeleAds account",
             "html": html_body,
