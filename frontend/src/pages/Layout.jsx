@@ -9,19 +9,19 @@ import RTLProvider from "@/components/ui/rtl-provider";
 import { getTranslation } from "@/components/translation/translations";
 import { LanguageProvider, useLanguage } from "@/components/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { 
-  LogOut, 
-  Menu, 
-  X, 
-  User as UserIcon, 
-  Users, 
-  BarChart2, 
+import {
+  LogOut,
+  Menu,
+  X,
+  User as UserIcon,
+  Users,
+  BarChart2,
   Home,
   MessageSquare,
   Settings,
-  ChevronDown,
   AlertCircle,
-  ListOrdered
+  ListOrdered,
+  Globe,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -205,17 +205,7 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <RTLProvider language={language}>
       <div className="min-h-screen bg-gray-50 relative overflow-x-hidden">
-        {/* Language switcher */}
-        <div 
-          className={`fixed bottom-4 ${language === "he" ? "left-4" : "right-4"} z-50`}
-          style={{
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
-            borderRadius: '8px'
-          }}
-        >
-          <LanguageSwitcher currentLanguage={language} onToggle={toggleLanguage} />
-        </div>
-        
+
         {isPublicPage && (
           <header className="bg-white shadow-sm py-3">
             <div className="container mx-auto px-4 flex justify-between items-center">
@@ -223,6 +213,15 @@ function LayoutContent({ children, currentPageName }) {
                 TeleAds
               </Link>
               <div className="flex items-center gap-2 sm:gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center gap-1 text-gray-500 text-sm px-2"
+                  onClick={toggleLanguage}
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="hidden sm:inline">{language === "he" ? "EN" : "HE"}</span>
+                </Button>
                 {!user ? (
                   <>
                     <Link to={createPageUrl("Login")}>
@@ -333,7 +332,15 @@ function LayoutContent({ children, currentPageName }) {
                 })}
               </nav>
 
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t space-y-2">
+                <Button
+                  variant="ghost"
+                  className="w-full flex items-center justify-start gap-2 text-gray-600 hover:bg-gray-100"
+                  onClick={toggleLanguage}
+                >
+                  <Globe className="h-4 w-4 text-gray-400" />
+                  {language === "he" ? "Switch to English" : "עבור לעברית"}
+                </Button>
                 <Button
                   variant="outline"
                   className="w-full flex items-center justify-center gap-2"
@@ -347,9 +354,17 @@ function LayoutContent({ children, currentPageName }) {
 
             {/* Main content */}
             <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-              {/* Mobile top header — title + user menu */}
-              <header className="md:hidden bg-white border-b px-4 py-3 flex items-center justify-between shrink-0">
-                <h1 className="text-base font-semibold truncate">
+              {/* Mobile top header — hamburger + title + user menu */}
+              <header className="md:hidden bg-white border-b px-3 py-3 flex items-center gap-2 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+                <h1 className="text-base font-semibold truncate flex-1 text-center">
                   {currentPageName && currentPageDisplayName()}
                 </h1>
                 <DropdownMenu>
