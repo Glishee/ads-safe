@@ -203,10 +203,10 @@ export default function ChannelOwnerDashboard() {
       {/* Quick View Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{getTranslation(language, "recentRequests")}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base">{getTranslation(language, "recentRequests")}</CardTitle>
             {adRequests.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => handleNavigation("ChannelOwnerAdRequests")}>
+              <Button variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleNavigation("ChannelOwnerAdRequests")}>
                 {getTranslation(language, "viewAll")} ({adRequests.length}) <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             )}
@@ -220,17 +220,17 @@ export default function ChannelOwnerDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentAdRequests.map(request => (
-                  <div key={request.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                    <div>
-                      <p className="font-medium text-sm">{channels.find(c => c.id === request.channel_id)?.name || getTranslation(language, "unknownChannel")}</p>
-                      <p className="text-xs text-gray-500 truncate max-w-xs" title={request.ad_text}>
+                  <div key={request.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm truncate">{channels.find(c => c.id === request.channel_id)?.name || getTranslation(language, "unknownChannel")}</p>
+                      <p className="text-xs text-gray-500 truncate" title={request.ad_text}>
                         {request.ad_text}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         ${request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs`}>
+                    <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs shrink-0`}>
                       {getTranslation(language, request.status)}
                     </Badge>
                   </div>
@@ -241,10 +241,10 @@ export default function ChannelOwnerDashboard() {
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{getTranslation(language, "myChannels")}</CardTitle>
-             {channels.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => handleNavigation("MyChannels")}>
+          <CardHeader className="flex flex-row items-center justify-between gap-2">
+            <CardTitle className="text-base">{getTranslation(language, "myChannels")}</CardTitle>
+            {channels.length > 0 && (
+              <Button variant="outline" size="sm" className="shrink-0 text-xs" onClick={() => handleNavigation("MyChannels")}>
                 {getTranslation(language, "viewAll")} ({channels.length}) <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             )}
@@ -266,8 +266,8 @@ export default function ChannelOwnerDashboard() {
             ) : (
               <div className="space-y-3">
                 {displayedChannels.map(channel => (
-                  <div key={channel.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                    <div className="flex items-center gap-3">
+                  <div key={channel.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-50 shrink-0">
                         {channel.avatar_url ? (
                           <img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover"/>
@@ -277,14 +277,14 @@ export default function ChannelOwnerDashboard() {
                           </div>
                         )}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium text-sm truncate" title={channel.name}>{channel.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 truncate">
                           ${channel.post_price?.toFixed(2)} • {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}
                         </p>
                       </div>
                     </div>
-                    <Badge variant="outline" className={`${channel.is_approved ? statusBadgeColors.approved : (channel.is_rejected ? statusBadgeColors.rejected : statusBadgeColors.pending)} border text-xs`}>
+                    <Badge variant="outline" className={`${channel.is_approved ? statusBadgeColors.approved : (channel.is_rejected ? statusBadgeColors.rejected : statusBadgeColors.pending)} border text-xs shrink-0`}>
                       {getTranslation(language, channel.is_approved ? 'approved' : (channel.is_rejected ? 'rejected' : 'pending'))}
                     </Badge>
                   </div>

@@ -204,7 +204,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <RTLProvider language={language}>
-      <div className="min-h-screen bg-gray-50 relative">
+      <div className="min-h-screen bg-gray-50 relative overflow-x-hidden">
         {/* Language switcher */}
         <div 
           className={`fixed bottom-4 ${language === "he" ? "left-4" : "right-4"} z-50`}
@@ -372,7 +372,7 @@ function LayoutContent({ children, currentPageName }) {
               </header>
 
               {/* Page content — pb-16 on mobile to clear bottom nav */}
-              <main className="flex-1 p-4 md:p-6 overflow-auto pb-20 md:pb-6">
+              <main className="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden pb-20 md:pb-6 w-full min-w-0">
                 {children}
               </main>
             </div>

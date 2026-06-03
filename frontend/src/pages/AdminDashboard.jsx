@@ -265,22 +265,22 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {getPendingChannels().slice(0, 5).map(channel => (
-                      <div key={channel.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                        <div className="flex items-center gap-3">
+                      <div key={channel.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 shrink-0">
-                            {channel.avatar_url ? (<img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover"/>) 
+                            {channel.avatar_url ? (<img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover"/>)
                             : (<div className="w-full h-full flex items-center justify-center"><span className="text-blue-600 font-bold">{channel.name?.charAt(0).toUpperCase()}</span></div>)}
                           </div>
-                          <div>
+                          <div className="min-w-0">
                             <p className="font-medium truncate" title={channel.name}>{channel.name}</p>
-                            <p className="text-xs text-gray-500">@{channel.admin_username}</p>
+                            <p className="text-xs text-gray-500 truncate">@{channel.admin_username}</p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-50" onClick={() => handleChannelApproval(channel.id, false)}>
+                        <div className="flex gap-1 shrink-0">
+                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 px-2 text-xs" onClick={() => handleChannelApproval(channel.id, false)}>
                             {getTranslation(language, "reject")}
                           </Button>
-                          <Button size="sm" className="bg-green-500 hover:bg-green-600" onClick={() => handleChannelApproval(channel.id, true)}>
+                          <Button size="sm" className="bg-green-500 hover:bg-green-600 px-2 text-xs" onClick={() => handleChannelApproval(channel.id, true)}>
                             {getTranslation(language, "approve")}
                           </Button>
                         </div>
@@ -315,18 +315,18 @@ export default function AdminDashboard() {
                 ) : (
                   <div className="space-y-3">
                     {users.slice(0, 5).map(appUser => (
-                      <div key={appUser.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                        <div className="flex items-center gap-3">
+                      <div key={appUser.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                            {appUser.profile_image ? (<img src={appUser.profile_image} alt={appUser.username || appUser.full_name} className="w-full h-full object-cover rounded-full"/>) 
+                            {appUser.profile_image ? (<img src={appUser.profile_image} alt={appUser.username || appUser.full_name} className="w-full h-full object-cover rounded-full"/>)
                             : (<Users className="h-5 w-5 text-gray-500" />)}
                           </div>
-                          <div>
-                            <p className="font-medium">{appUser.username || appUser.full_name}</p>
-                            <p className="text-xs text-gray-500">{appUser.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{appUser.username || appUser.full_name}</p>
+                            <p className="text-xs text-gray-500 truncate">{appUser.email}</p>
                           </div>
                         </div>
-                        <Badge variant={appUser.role === "admin" ? "default" : "secondary"} className={appUser.role === "admin" ? "bg-blue-500 text-white" : ""}>
+                        <Badge variant={appUser.role === "admin" ? "default" : "secondary"} className={`shrink-0 ${appUser.role === "admin" ? "bg-blue-500 text-white" : ""}`}>
                           {getTranslation(language, appUser.role)}
                         </Badge>
                       </div>
