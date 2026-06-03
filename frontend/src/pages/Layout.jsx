@@ -197,6 +197,7 @@ function LayoutContent({ children, currentPageName }) {
       MyChannels: "myChannels",
       AddChannel: "addChannel",
       AdRequest: "adRequests",
+      AccountSettings: "accountSettings",
     };
     const key = pageMap[currentPageName] || currentPageName;
     return getTranslation(language, key) || currentPageName;
@@ -333,6 +334,18 @@ function LayoutContent({ children, currentPageName }) {
               </nav>
 
               <div className="absolute bottom-0 left-0 right-0 p-4 border-t space-y-2">
+                <Link
+                  to={createPageUrl("AccountSettings")}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm
+                    ${currentPageName === "AccountSettings"
+                      ? "bg-blue-50 text-blue-700 font-medium"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Settings className={`h-5 w-5 ${currentPageName === "AccountSettings" ? "text-blue-600" : "text-gray-400"}`} />
+                  {getTranslation(language, "accountSettings")}
+                </Link>
                 <Button
                   variant="ghost"
                   className="w-full flex items-center justify-start gap-2 text-gray-600 hover:bg-gray-100"
@@ -377,6 +390,11 @@ function LayoutContent({ children, currentPageName }) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel className="truncate">{user?.username || user?.full_name}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { navigate(createPageUrl("AccountSettings")); setSidebarOpen(false); }}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      {getTranslation(language, "accountSettings")}
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />

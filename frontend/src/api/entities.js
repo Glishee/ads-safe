@@ -115,4 +115,9 @@ export const User = {
   },
   list: () => api.get("/auth/users"),
   getById: (id) => api.get(`/auth/users/${id}`),
+  updateProfile: async (data) => {
+    const updated = await api.put("/auth/profile", data);
+    localStorage.setItem("user", JSON.stringify(updated));
+    return updated;
+  },
 };

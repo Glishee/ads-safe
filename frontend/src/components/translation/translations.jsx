@@ -521,6 +521,27 @@ export const translations = {
     channelAvatarPreview: "Channel avatar preview",
     iConfirmOwnershipAndAccuracy: "I confirm that I am the owner or authorized representative of this channel and that all information provided is accurate.",
     errorAvatarUploadIncomplete: "Avatar upload may not have completed. Please try re-uploading or remove the preview if you wish to proceed without an avatar.",
+
+    // Account Settings
+    accountSettings: "Account Settings",
+    profileSettings: "Profile",
+    securitySettings: "Security",
+    changePassword: "Change Password",
+    currentPassword: "Current Password",
+    newPassword: "New Password",
+    confirmNewPassword: "Confirm New Password",
+    saveProfile: "Save Profile",
+    profileUpdated: "Profile updated successfully.",
+    passwordChanged: "Password changed successfully.",
+    passwordMismatch: "New passwords do not match.",
+    passwordTooShort: "Password must be at least 6 characters.",
+    currentPasswordRequired: "Current password is required.",
+    usernameOrEmailRequired: "Please update at least one field.",
+    usernameAlreadyTaken: "That username is already taken.",
+    emailAlreadyInUse: "That email is already in use.",
+    currentPasswordIncorrect: "Current password is incorrect.",
+    nothingToUpdate: "Nothing to update.",
+    settingsLink: "Settings",
   },
   
   he: {
@@ -1046,6 +1067,27 @@ export const translations = {
     channelAvatarPreview: "תצוגה מקדימה של סמל הערוץ",
     iConfirmOwnershipAndAccuracy: "אני מאשר/ת שאני הבעלים או נציג/ה מורשה של ערוץ זה וכל המידע שנמסר מדויק.",
     errorAvatarUploadIncomplete: "העלאת הסמל אולי לא הושלמה. אנא נסה להעלות מחדש או הסר את התצוגה המקדימה אם ברצונך להמשיך ללא סמל.",
+
+    // Account Settings
+    accountSettings: "הגדרות חשבון",
+    profileSettings: "פרופיל",
+    securitySettings: "אבטחה",
+    changePassword: "שינוי סיסמה",
+    currentPassword: "סיסמה נוכחית",
+    newPassword: "סיסמה חדשה",
+    confirmNewPassword: "אימות סיסמה חדשה",
+    saveProfile: "שמור פרופיל",
+    profileUpdated: "הפרופיל עודכן בהצלחה.",
+    passwordChanged: "הסיסמה שונתה בהצלחה.",
+    passwordMismatch: "הסיסמאות החדשות אינן תואמות.",
+    passwordTooShort: "הסיסמה חייבת להכיל לפחות 6 תווים.",
+    currentPasswordRequired: "נדרשת הסיסמה הנוכחית.",
+    usernameOrEmailRequired: "אנא עדכן לפחות שדה אחד.",
+    usernameAlreadyTaken: "שם המשתמש כבר תפוס.",
+    emailAlreadyInUse: "כתובת האימייל כבר בשימוש.",
+    currentPasswordIncorrect: "הסיסמה הנוכחית שגויה.",
+    nothingToUpdate: "אין מה לעדכן.",
+    settingsLink: "הגדרות",
   }
 };
 

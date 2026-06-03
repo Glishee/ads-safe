@@ -65,6 +65,57 @@ def login():
 
 
 
+@user_bp.route('/profile', methods=['PUT'])
+def update_profile():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({'message': 'Not logged in'}), 401
+
+    data = request.get_json() or {}
+    updates = {}
+
+    new_username = data.get('username', '').strip()
+    new_email    = data.get('email', '').strip()
+    current_pw   = data.get('current_password', '')
+    new_pw       = data.get('new_password', '')
+
+    current_user = users_collection.find_one({'_id': ObjectId(user_id)})
+    if not current_user:
+        return jsonify({'message': 'User not found'}), 404
+
+    if new_username and new_username != current_user.get('username'):
+        if users_collection.find_one({'username': new_username}):
+            return jsonify({'message': 'Username already taken'}), 409
+        updates['username'] = new_username
+
+    if new_email and new_email != current_user.get('email'):
+        if users_collection.find_one({'email': new_email}):
+            return jsonify({'message': 'Email already in use'}), 409
+        updates['email'] = new_email
+
+    if new_pw:
+        if not current_pw:
+            return jsonify({'message': 'Current password required'}), 400
+        if not check_password_hash(current_user['password'], current_pw):
+            return jsonify({'message': 'Current password is incorrect'}), 400
+        if len(new_pw) < 6:
+            return jsonify({'message': 'New password must be at least 6 characters'}), 400
+        updates['password'] = generate_password_hash(new_pw)
+
+    if not updates:
+        return jsonify({'message': 'Nothing to update'}), 400
+
+    users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': updates})
+    updated = users_collection.find_one({'_id': ObjectId(user_id)})
+    return jsonify({
+        'id': str(updated['_id']),
+        'username': updated.get('username'),
+        'email': updated.get('email'),
+        'role': updated.get('role', 'user'),
+        'application_role': updated.get('application_role'),
+    }), 200
+
+
 @user_bp.route('/profile', methods=['GET'])
 def profile():
     user_id = session.get("user_id")

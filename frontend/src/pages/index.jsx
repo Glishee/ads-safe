@@ -34,6 +34,8 @@ import ChannelOwnerAdRequests from "./ChannelOwnerAdRequests";
 
 import ChannelOwnerStats from "./ChannelOwnerStats";
 
+import AccountSettings from "./AccountSettings";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -71,7 +73,9 @@ const PAGES = {
     ChannelOwnerAdRequests: ChannelOwnerAdRequests,
     
     ChannelOwnerStats: ChannelOwnerStats,
-    
+
+    AccountSettings: AccountSettings,
+
 }
 
 function _getCurrentPage(url) {
@@ -131,7 +135,9 @@ function PagesContent() {
                 <Route path="/ChannelOwnerAdRequests" element={<ChannelOwnerAdRequests />} />
                 
                 <Route path="/ChannelOwnerStats" element={<ChannelOwnerStats />} />
-                
+
+                <Route path="/AccountSettings" element={<AccountSettings />} />
+
             </Routes>
         </Layout>
     );
