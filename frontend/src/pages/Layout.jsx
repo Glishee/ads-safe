@@ -208,34 +208,35 @@ function LayoutContent({ children, currentPageName }) {
         </div>
         
         {isPublicPage && (
-          <header className="bg-white shadow-sm py-4">
+          <header className="bg-white shadow-sm py-3">
             <div className="container mx-auto px-4 flex justify-between items-center">
-              <Link to={createPageUrl("Home")} className="text-xl font-bold">
+              <Link to={createPageUrl("Home")} className="text-lg sm:text-xl font-bold shrink-0">
                 TeleAds
               </Link>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {!user ? (
                   <>
                     <Link to={createPageUrl("Login")}>
-                      <Button variant="outline">
+                      <Button variant="outline" size="sm" className="text-sm px-3">
                         {getTranslation(language, "login")}
                       </Button>
                     </Link>
                     <Link to={createPageUrl("Register")}>
-                      <Button className="bg-blue-600 hover:bg-blue-700">
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-sm px-3">
                         {getTranslation(language, "register")}
                       </Button>
                     </Link>
                   </>
                 ) : (
-                  <Button 
-                    variant="outline" 
-                    className="flex items-center gap-1"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-sm"
                     onClick={() => {
                       if (isAdmin) navigate(createPageUrl("AdminDashboard"));
                       else if (isChannelOwner) navigate(createPageUrl("ChannelOwnerDashboard"));
                       else if (isAdvertiser) navigate(createPageUrl("AdvertiserDashboard"));
-                      else navigate(createPageUrl("CompleteProfile")); // Fallback
+                      else navigate(createPageUrl("CompleteProfile"));
                     }}
                   >
                     {getTranslation(language, "dashboard")}

@@ -155,14 +155,14 @@ export default function AdminChannels() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <CardTitle>{getTranslation(language, "channelsList")}</CardTitle>
             <Tabs value={statusFilter} onValueChange={(value) => navigate(createPageUrl(`AdminChannels?status=${value}`))}>
-              <TabsList>
-                <TabsTrigger value="pending">{getTranslation(language, "pending")}</TabsTrigger>
-                <TabsTrigger value="approved">{getTranslation(language, "approved")}</TabsTrigger>
-                <TabsTrigger value="rejected">{getTranslation(language, "rejected")}</TabsTrigger>
-                <TabsTrigger value="all">{getTranslation(language, "all")}</TabsTrigger>
+              <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+                <TabsTrigger value="pending" className="text-xs sm:text-sm">{getTranslation(language, "pending")}</TabsTrigger>
+                <TabsTrigger value="approved" className="text-xs sm:text-sm">{getTranslation(language, "approved")}</TabsTrigger>
+                <TabsTrigger value="rejected" className="text-xs sm:text-sm">{getTranslation(language, "rejected")}</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs sm:text-sm">{getTranslation(language, "all")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -179,6 +179,7 @@ export default function AdminChannels() {
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -255,6 +256,7 @@ export default function AdminChannels() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>
