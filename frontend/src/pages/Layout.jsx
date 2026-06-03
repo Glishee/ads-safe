@@ -387,38 +387,11 @@ function LayoutContent({ children, currentPageName }) {
               </header>
 
               {/* Page content — pb-16 on mobile to clear bottom nav */}
-              <main className="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden pb-20 md:pb-6 w-full min-w-0">
+              <main className="flex-1 p-4 md:p-6 overflow-y-auto overflow-x-hidden w-full min-w-0">
                 {children}
               </main>
             </div>
 
-            {/* Mobile bottom navigation bar */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 flex items-stretch">
-              {getNavLinks().map((link) => {
-                const isActive = currentPageName === link.path.split('?')[0];
-                return (
-                  <Link
-                    key={link.path}
-                    to={createPageUrl(link.path)}
-                    className={`
-                      relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5
-                      text-xs transition-colors min-w-0
-                      ${isActive ? "text-blue-600" : "text-gray-400 hover:text-gray-600"}
-                    `}
-                  >
-                    {isActive && (
-                      <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-b-full" />
-                    )}
-                    <span className={`transition-transform ${isActive ? "scale-110" : ""}`}>
-                      {link.icon}
-                    </span>
-                    <span className="truncate w-full text-center px-1 leading-tight">
-                      {getTranslation(language, link.name)}
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
           </div>
         ) : (
           <main className={isPublicPage ? "" : "pt-16"}>
