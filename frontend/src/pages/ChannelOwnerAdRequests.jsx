@@ -6,12 +6,11 @@ import { TelegramChannel } from "@/api/entities";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
-import { ArrowLeft, Eye, CheckCircle2, XCircle, Clock, Edit, Loader2 } from "lucide-react";
+import { Eye, CheckCircle2, XCircle, Clock, Edit, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -149,70 +148,80 @@ export default function ChannelOwnerAdRequests() {
     return adRequests; // For "all" tab
   };
   
-  const renderRequestCard = (request) => (
-    <Card key={request.id} className="mb-4">
-      <CardHeader className="pb-3">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-          <CardTitle className="text-md mb-1 sm:mb-0">{getChannelName(request.channel_id)}</CardTitle>
-          <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs`}>
+  const renderRequestCard = (request) => {
+    const isPendingOwner = (request.status === "pending" || request.status === "admin_approved") && !request.owner_approved;
+    const isApproved = request.status === "approved";
+    return (
+      <Card key={request.id} className="overflow-hidden">
+        {/* Card header — channel + badge */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2 gap-2">
+          <p className="font-semibold text-sm truncate min-w-0">{getChannelName(request.channel_id)}</p>
+          <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs shrink-0`}>
             {getTranslation(language, request.status)}
-            {request.status === 'pending' && request.admin_approved && ' (' + getTranslation(language, 'adminApproved') + ')'}
           </Badge>
         </div>
-        <CardDescription className="text-xs">
-          {getTranslation(language, "submitted")}: {new Date(request.created_date).toLocaleDateString()} | ${request.price?.toFixed(2)}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-700 mb-3 line-clamp-3">{request.ad_text}</p>
-        {request.media_url && (
-          <Button variant="outline" size="sm" onClick={() => window.open(request.media_url, "_blank")}>
-            {getTranslation(language, "viewMedia")}
-          </Button>
-        )}
-      </CardContent>
-      <CardFooter className="flex flex-wrap justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`AdRequest?id=${request.id}`))}>
-          <Eye className="mr-1 h-4 w-4" />{getTranslation(language, "details")}
-        </Button>
-        {/* Actions for Pending/Admin Approved (awaiting owner) */}
-        {((request.status === "pending" || request.status === "admin_approved") && !request.owner_approved) && (
-          <>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
-              onClick={() => openRejectModal(request)}
-              disabled={isProcessing}
-            >
-              <XCircle className="mr-1 h-4 w-4" />{getTranslation(language, "reject")}
-            </Button>
-            <Button 
-              size="sm" 
-              className="bg-green-500 hover:bg-green-600 text-white"
-              onClick={() => handleUpdateRequestStatus(request.id, "approved")} // This will become 'owner_approved' or 'approved'
-              disabled={isProcessing}
-            >
-               {isProcessing && selectedRequest?.id === request.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <CheckCircle2 className="mr-1 h-4 w-4" />}
-              {getTranslation(language, "approve")}
-            </Button>
-          </>
-        )}
-        {/* Action for Approved (ready to be marked completed) */}
-        {request.status === "approved" && (
-          <Button 
-            size="sm" 
-            className="bg-purple-500 hover:bg-purple-600 text-white"
-            onClick={() => handleUpdateRequestStatus(request.id, "completed")}
-            disabled={isProcessing}
+
+        {/* Ad text */}
+        <div className="px-4 pb-3">
+          <p className="text-sm text-gray-700 line-clamp-2">{request.ad_text}</p>
+          <p className="text-xs text-gray-400 mt-1">
+            ${request.price?.toFixed(2)} · {new Date(request.created_date).toLocaleDateString()}
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="border-t px-3 py-2 flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex-1 text-gray-600"
+            onClick={() => navigate(createPageUrl(`AdRequest?id=${request.id}`))}
           >
-            {isProcessing && selectedRequest?.id === request.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Edit className="mr-1 h-4 w-4" />}
-            {getTranslation(language, "markAsCompleted")}
+            <Eye className="h-4 w-4 mr-1" />{getTranslation(language, "details")}
           </Button>
-        )}
-      </CardFooter>
-    </Card>
-  );
+
+          {isPendingOwner && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => openRejectModal(request)}
+                disabled={isProcessing}
+              >
+                <XCircle className="h-4 w-4 mr-1" />{getTranslation(language, "reject")}
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+                onClick={() => handleUpdateRequestStatus(request.id, "approved")}
+                disabled={isProcessing}
+              >
+                {isProcessing && selectedRequest?.id === request.id
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <><CheckCircle2 className="h-4 w-4 mr-1" />{getTranslation(language, "approve")}</>
+                }
+              </Button>
+            </>
+          )}
+
+          {isApproved && (
+            <Button
+              size="sm"
+              className="flex-1 bg-purple-500 hover:bg-purple-600 text-white"
+              onClick={() => handleUpdateRequestStatus(request.id, "completed")}
+              disabled={isProcessing}
+            >
+              {isProcessing && selectedRequest?.id === request.id
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <><Edit className="h-4 w-4 mr-1" />{getTranslation(language, "markAsCompleted")}</>
+              }
+            </Button>
+          )}
+        </div>
+      </Card>
+    );
+  };
 
 
   if (loading) {
@@ -223,51 +232,50 @@ export default function ChannelOwnerAdRequests() {
     );
   }
 
+  const tabs = [
+    { value: "pending",          label: getTranslation(language, "pending"),   count: filteredRequests("pending").length },
+    { value: "approved",         label: getTranslation(language, "approved"),  count: filteredRequests("approved").length },
+    { value: "completed",        label: getTranslation(language, "completed"), count: filteredRequests("completed").length },
+    { value: "rejected_canceled",label: getTranslation(language, "rejected"),  count: filteredRequests("rejected_canceled").length },
+    { value: "all",              label: getTranslation(language, "all"),       count: adRequests.length },
+  ];
+
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => navigate(createPageUrl("ChannelOwnerDashboard"))} className="mr-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          {getTranslation(language, "backToDashboard")}
-        </Button>
-        <h1 className="text-2xl font-bold">{getTranslation(language, "adRequests")}</h1>
+    <div className="space-y-4">
+      {/* Horizontal scrollable tab bar */}
+      <div className="overflow-x-auto -mx-4 px-4">
+        <div className="flex gap-2 min-w-max">
+          {tabs.map(tab => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors
+                ${activeTab === tab.value
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                }`}
+            >
+              {tab.label}
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
+                ${activeTab === tab.value ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-6">
-          <TabsTrigger value="pending">{getTranslation(language, "pending")} ({filteredRequests("pending").length})</TabsTrigger>
-          <TabsTrigger value="approved">{getTranslation(language, "approved")} ({filteredRequests("approved").length})</TabsTrigger>
-          <TabsTrigger value="completed">{getTranslation(language, "completed")} ({filteredRequests("completed").length})</TabsTrigger>
-          <TabsTrigger value="rejected_canceled">{getTranslation(language, "rejected")}/{getTranslation(language, "canceled")} ({filteredRequests("rejected_canceled").length})</TabsTrigger>
-          <TabsTrigger value="all">{getTranslation(language, "all")} ({adRequests.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending">
-          {filteredRequests("pending").length > 0 ? 
-            filteredRequests("pending").map(renderRequestCard) : 
-            <p className="text-gray-500 text-center py-4">{getTranslation(language, "noPendingRequests")}</p>}
-        </TabsContent>
-        <TabsContent value="approved">
-          {filteredRequests("approved").length > 0 ? 
-            filteredRequests("approved").map(renderRequestCard) : 
-            <p className="text-gray-500 text-center py-4">{getTranslation(language, "noApprovedRequests")}</p>}
-        </TabsContent>
-        <TabsContent value="completed">
-          {filteredRequests("completed").length > 0 ? 
-            filteredRequests("completed").map(renderRequestCard) : 
-            <p className="text-gray-500 text-center py-4">{getTranslation(language, "noCompletedRequests")}</p>}
-        </TabsContent>
-        <TabsContent value="rejected_canceled">
-          {filteredRequests("rejected_canceled").length > 0 ? 
-            filteredRequests("rejected_canceled").map(renderRequestCard) : 
-            <p className="text-gray-500 text-center py-4">{getTranslation(language, "noRejectedCanceledRequests")}</p>}
-        </TabsContent>
-        <TabsContent value="all">
-          {adRequests.length > 0 ? 
-            adRequests.map(renderRequestCard) : 
-            <p className="text-gray-500 text-center py-4">{getTranslation(language, "noRequestsYet")}</p>}
-        </TabsContent>
-      </Tabs>
+      {/* Request list */}
+      <div className="space-y-3">
+        {(activeTab === "all" ? adRequests : filteredRequests(activeTab)).length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <Clock className="h-10 w-10 mx-auto mb-3 opacity-40" />
+            <p className="text-sm">{getTranslation(language, "noPendingRequests")}</p>
+          </div>
+        ) : (
+          (activeTab === "all" ? adRequests : filteredRequests(activeTab)).map(renderRequestCard)
+        )}
+      </div>
       
       <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
         <DialogContent>
