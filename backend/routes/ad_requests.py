@@ -78,8 +78,24 @@ def create_ad_request():
 
 @ad_request_bp.route("/ad-requests", methods=["GET"])
 def get_all_ad_requests():
-    all_requests = ad_requests_collection.find()
-    return jsonify([serialize_ad_request(r) for r in all_requests])
+    query = {}
+
+    advertiser_id = request.args.get("advertiser_id")
+    channel_id    = request.args.get("channel_id")
+    status        = request.args.get("status")
+    channel_ids   = request.args.get("channel_id__in")
+
+    if advertiser_id:
+        query["advertiser_id"] = advertiser_id
+    if channel_id:
+        query["channel_id"] = channel_id
+    if channel_ids:
+        query["channel_id"] = {"$in": channel_ids.split(",")}
+    if status:
+        query["status"] = status
+
+    results = ad_requests_collection.find(query).sort("created_at", -1)
+    return jsonify([serialize_ad_request(r) for r in results])
 
 @ad_request_bp.route("/ad-requests/<request_id>", methods=["GET"])
 def get_single_ad_request(request_id):

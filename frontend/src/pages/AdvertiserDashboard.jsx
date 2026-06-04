@@ -44,39 +44,33 @@ export default function AdvertiserDashboard() {
     const fetchUserAndRequests = async () => {
       setLoading(true);
       try {
+        // Always fetch fresh user data (bypass localStorage cache)
+        localStorage.removeItem("user");
         const userData = await User.me();
         setUser(userData);
-        
-        if (userData.language_preference) {
-          // Set language preference on user data load, but keep context as source of truth
-          // setLanguage(userData.language_preference); // No longer setting it here
-        }
-        
-        const requestsData = await AdRequest.filter({ advertiser_id: userData.id }, "-created_date");
+
+        const requestsData = await AdRequest.filter({ advertiser_id: userData.id });
         setRequests(requestsData);
 
-        // Fetch channel details for the requests
-        const channelIds = [...new Set(requestsData.map(req => req.channel_id))];
+        const channelIds = [...new Set(requestsData.map(req => req.channel_id).filter(Boolean))];
         if (channelIds.length > 0) {
-          const fetchedChannels = await TelegramChannel.filter({ is_approved: true }); // Consider fetching only specific IDs if API allows
+          const fetchedChannels = await TelegramChannel.filter({ is_approved: true });
           const channelsMap = fetchedChannels.reduce((acc, ch) => {
             acc[ch.id] = ch;
             return acc;
           }, {});
           setChannels(channelsMap);
         }
-
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        // Handle cases where user might not be logged in or other API errors
-        if (error.message.includes("User not authenticated") || error.status === 401) {
-          navigate(createPageUrl("Home")); // Redirect to home or login
+        console.error("Error fetching dashboard data:", error);
+        if (error.message?.includes("User not authenticated") || error.status === 401) {
+          navigate(createPageUrl("Login"));
         }
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchUserAndRequests();
   }, [navigate]);
   
