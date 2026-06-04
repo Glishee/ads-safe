@@ -10,16 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { 
-  BarChart, 
-  DollarSign, 
-  Clock, 
-  CheckCircle, 
+import {
+  BarChart,
+  DollarSign,
+  Clock,
+  CheckCircle,
   ArrowRight,
   MessageSquare,
   Search,
   ListOrdered,
-  Home
+  Home,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
@@ -31,7 +33,8 @@ export default function AdvertiserDashboard() {
   const [requests, setRequests] = useState([]);
   const [channels, setChannels] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
-  
+  const [fetchError, setFetchError] = useState("");
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get("tab");
@@ -39,37 +42,44 @@ export default function AdvertiserDashboard() {
       setActiveTab(tabParam);
     }
   }, []);
-  
-  useEffect(() => {
-    const fetchUserAndRequests = async () => {
-      setLoading(true);
-      try {
-        // Always fetch fresh user data (bypass localStorage cache)
-        const userData = await User.me();
-        setUser(userData);
 
-        const requestsData = await AdRequest.filter({ advertiser_id: userData.id });
-        setRequests(requestsData);
+  const fetchUserAndRequests = async () => {
+    setLoading(true);
+    setFetchError("");
+    try {
+      const userData = await User.me();
+      setUser(userData);
 
-        const channelIds = [...new Set(requestsData.map(req => req.channel_id).filter(Boolean))];
-        if (channelIds.length > 0) {
-          const fetchedChannels = await TelegramChannel.filter({ is_approved: true });
-          const channelsMap = fetchedChannels.reduce((acc, ch) => {
-            acc[ch.id] = ch;
-            return acc;
-          }, {});
-          setChannels(channelsMap);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        if (error.message?.includes("User not authenticated") || error.status === 401) {
-          navigate(createPageUrl("Login"));
-        }
-      } finally {
-        setLoading(false);
+      if (!userData?.id) {
+        setFetchError("Could not load user ID. Please log out and log in again.");
+        return;
       }
-    };
 
+      const requestsData = await AdRequest.filter({ advertiser_id: userData.id });
+      setRequests(requestsData);
+
+      const channelIds = [...new Set(requestsData.map(req => req.channel_id).filter(Boolean))];
+      if (channelIds.length > 0) {
+        const fetchedChannels = await TelegramChannel.filter({ is_approved: true });
+        const channelsMap = fetchedChannels.reduce((acc, ch) => {
+          acc[ch.id] = ch;
+          return acc;
+        }, {});
+        setChannels(channelsMap);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      if (error.message?.includes("User not authenticated") || error.status === 401) {
+        navigate(createPageUrl("Login"));
+      } else {
+        setFetchError(error.message || "Error loading orders");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUserAndRequests();
   }, [navigate]);
   
@@ -139,7 +149,7 @@ export default function AdvertiserDashboard() {
             <Home className="h-4 w-4" />
             {getTranslation(language, "home")}
           </Button>
-          <Button 
+          <Button
             onClick={() => navigate(createPageUrl("ChannelsList"))}
             className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
           >
@@ -148,7 +158,23 @@ export default function AdvertiserDashboard() {
           </Button>
         </div>
       </div>
-      
+
+      {fetchError && (
+        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <span className="flex-1">{fetchError}</span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0 border-red-300 text-red-700 hover:bg-red-100"
+            onClick={fetchUserAndRequests}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            Retry
+          </Button>
+        </div>
+      )}
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 md:w-[300px] mb-8">
           <TabsTrigger value="overview">

@@ -23,6 +23,7 @@ def serialize_ad_request(doc):
         "moderation_info": doc.get("moderation_info"),
         "admin_approved": doc.get("admin_approved", False),
         "owner_approved": doc.get("owner_approved", False),
+        "rejection_reason": doc.get("rejection_reason"),
         "created_at": doc.get("created_at").isoformat() if doc.get("created_at") else None,
         "created_date": doc.get("created_at").isoformat() if doc.get("created_at") else None,
     }

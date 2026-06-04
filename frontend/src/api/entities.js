@@ -101,7 +101,13 @@ export const User = {
   },
   me: async () => {
     const cached = localStorage.getItem("user");
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.id) return parsed;
+      } catch (_) {}
+      localStorage.removeItem("user");
+    }
     const data = await api.get("/auth/profile");
     localStorage.setItem("user", JSON.stringify(data));
     return data;
