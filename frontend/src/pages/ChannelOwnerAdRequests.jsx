@@ -42,7 +42,6 @@ export default function ChannelOwnerAdRequests() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        localStorage.removeItem("user");
         const userData = await User.me();
         setUser(userData);
 

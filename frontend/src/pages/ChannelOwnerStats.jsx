@@ -87,7 +87,6 @@ export default function ChannelOwnerStats() {
     const load = async () => {
       setLoading(true);
       try {
-        localStorage.removeItem("user");
         const userData = await User.me();
         if (userData.application_role !== "channel_owner" && userData.role !== "admin") {
           navigate(createPageUrl("CompleteProfile"));

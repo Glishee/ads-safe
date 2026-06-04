@@ -45,7 +45,6 @@ export default function AdvertiserDashboard() {
       setLoading(true);
       try {
         // Always fetch fresh user data (bypass localStorage cache)
-        localStorage.removeItem("user");
         const userData = await User.me();
         setUser(userData);
 
