@@ -174,6 +174,7 @@ export const translations = {
     post: "post",
     all: "All",
     channels: "channels",
+    telegramChannels: "Telegram Channels",
     searchChannels: "Search channels",
     fetching: "Fetching...",
     fetchInfo: "Fetch Info",
@@ -651,6 +652,7 @@ export const translations = {
     
     // Channel Listing
     allChannels: "כל הערוצים",
+    telegramChannels: "ערוצי טלגרם",
     searchChannels: "חיפוש ערוצים",
     filterByCategory: "סינון לפי קטגוריה",
     subscribers: "מנויים",

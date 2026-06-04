@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { User } from "@/api/entities";
+import React from "react";
 import ChannelList from "@/components/telegram/channel-list";
+import { getTranslation } from "@/components/translation/translations";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function ChannelsList() {
-  const [language, setLanguage] = useState("en");
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await User.me();
-        if (user.language_preference) {
-          setLanguage(user.language_preference);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    
-    fetchUser();
-  }, []);
+  const { language } = useLanguage();
 
   return (
-    <div className="container mx-auto space-y-8">
+    <div className="space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold">
-        {language === "en" ? "Telegram Channels" : "ערוצי טלגרם"}
+        {getTranslation(language, "telegramChannels")}
       </h1>
-      <ChannelList language={language} />
+      <ChannelList />
     </div>
   );
 }

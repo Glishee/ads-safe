@@ -205,7 +205,7 @@ function LayoutContent({ children, currentPageName }) {
 
   return (
     <RTLProvider language={language}>
-      <div className="min-h-screen bg-gray-50 relative overflow-x-hidden">
+      <div className="min-h-[100dvh] bg-gray-50 relative overflow-x-hidden">
 
         {isPublicPage && (
           <header className="bg-white shadow-sm py-3">
