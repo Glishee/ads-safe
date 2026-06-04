@@ -15,7 +15,7 @@ user_bp = Blueprint('user_bp', __name__)
 
 def _send_verification_email(to_email, username, token):
     """Send verification email via Resend. Falls back to console log if not configured."""
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    frontend_url = os.getenv("FRONTEND_URL", "https://ads-safe.vercel.app")
     verify_link = f"{frontend_url}/VerifyEmail?token={token}"
 
     api_key = os.getenv("RESEND_API_KEY")
