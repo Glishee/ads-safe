@@ -72,7 +72,8 @@ export default function AdvertiserDashboard() {
       if (error.message?.includes("User not authenticated") || error.status === 401) {
         navigate(createPageUrl("Login"));
       } else {
-        setFetchError(error.message || "Error loading orders");
+        const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:5000");
+        setFetchError(`${error.message} — API: ${apiBase}`);
       }
     } finally {
       setLoading(false);
