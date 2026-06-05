@@ -34,6 +34,7 @@ export default function AdvertiserDashboard() {
   const [channels, setChannels] = useState({});
   const [activeTab, setActiveTab] = useState("overview");
   const [fetchError, setFetchError] = useState("");
+  const [slowLoad, setSlowLoad] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -42,6 +43,12 @@ export default function AdvertiserDashboard() {
       setActiveTab(tabParam);
     }
   }, []);
+
+  useEffect(() => {
+    if (!loading) return;
+    const t = setTimeout(() => setSlowLoad(true), 5000);
+    return () => clearTimeout(t);
+  }, [loading]);
 
   const fetchUserAndRequests = async () => {
     setLoading(true);
@@ -105,10 +112,14 @@ export default function AdvertiserDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-3 px-6">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="text-gray-500">{getTranslation(language, "loading")}</p>
-          <p className="text-xs text-gray-400">Connecting to server…</p>
+          {slowLoad && (
+            <p className="text-xs text-amber-600 max-w-xs mx-auto">
+              {getTranslation(language, "serverWarmingUp") || "Server is starting up, please wait…"}
+            </p>
+          )}
         </div>
       </div>
     );

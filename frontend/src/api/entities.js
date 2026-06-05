@@ -89,22 +89,22 @@ export const TelegramChannel = {
 
 
 export const AdRequest = {
-  getAll: () => publicGet("/ad-requests"),
-  get: (id) => publicGet(`/ad-requests/${id}`),
-  getByAdvertiser: (id) => publicGet(`/ad-requests?advertiser_id=${id}`),
-  getByChannel: (id) => publicGet(`/ad-requests?channel_id=${id}`),
+  getAll: () => apiGet("/ad-requests"),
+  get: (id) => apiGet(`/ad-requests/${id}`),
+  getByAdvertiser: (id) => apiGet(`/ad-requests?advertiser_id=${id}`),
+  getByChannel: (id) => apiGet(`/ad-requests?channel_id=${id}`),
 
   create: (formData) => apiPost("/ad-requests", formData, true),
 
   update: (id, data) => api.put(`/ad-requests/${id}`, data),
   delete: (id) => api.delete(`/ad-requests/${id}`),
   filter: (params) =>
-    publicGet(`/ad-requests?${new URLSearchParams(params).toString()}`),
+    apiGet(`/ad-requests?${new URLSearchParams(params).toString()}`),
 
   approve: (id) => api.post(`/ad-requests/${id}/approve`, {}),
   reject: (id, reason = "Rejected by admin") =>
     api.post(`/ad-requests/${id}/reject`, { reason }),
-  list: () => publicGet("/ad-requests"),
+  list: () => apiGet("/ad-requests"),
 };
 
 
