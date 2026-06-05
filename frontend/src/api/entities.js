@@ -1,4 +1,5 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api";
+export const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const BASE_URL = BACKEND_URL + "/api";
 
 // Fetches a public (no-auth) endpoint, retrying on network failures so Railway
 // free-tier wake-up timeouts don't permanently block the request.

@@ -2,6 +2,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getTranslation } from "@/components/translation/translations";
+import { BACKEND_URL } from "@/api/entities";
 import { Check, X, ExternalLink } from "lucide-react";
 
 export default function AdRequestItem({ request, channel, language, onUpdateStatus }) {
@@ -79,7 +80,10 @@ export default function AdRequestItem({ request, channel, language, onUpdateStat
                 variant="outline"
                 size="sm"
                 className="flex items-center gap-1"
-                onClick={() => window.open(request.media_url, "_blank")}
+                onClick={() => window.open(
+                  request.media_url.startsWith("http") ? request.media_url : `${BACKEND_URL}${request.media_url}`,
+                  "_blank"
+                )}
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 {getTranslation(language, "viewMedia")}

@@ -2,9 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/api/entities";
-import { AdRequest } from "@/api/entities";
-import { TelegramChannel } from "@/api/entities";
+import { User, AdRequest, TelegramChannel, BACKEND_URL } from "@/api/entities";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 

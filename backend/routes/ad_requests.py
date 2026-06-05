@@ -14,6 +14,7 @@ from extensions import limiter
 
 ad_request_bp = Blueprint("ad_request", __name__)
 UPLOAD_FOLDER = "static/uploads"
+BACKEND_PUBLIC_URL = os.getenv("BACKEND_PUBLIC_URL", "").rstrip("/")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 _cloudinary_configured = False
@@ -37,7 +38,8 @@ def upload_media(file):
         filename = secure_filename(file.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
-        return f"/static/uploads/{filename}"
+        base = BACKEND_PUBLIC_URL if BACKEND_PUBLIC_URL else ""
+        return f"{base}/static/uploads/{filename}"
 
 
 @ad_request_bp.route("/ad-requests", methods=["POST"])
