@@ -233,11 +233,11 @@ export default function ChannelOwnerAdRequests() {
   }
 
   const tabs = [
-    { value: "all",              label: getTranslation(language, "all"),       count: adRequests.length },
     { value: "pending",          label: getTranslation(language, "pending"),   count: filteredRequests("pending").length },
     { value: "approved",         label: getTranslation(language, "approved"),  count: filteredRequests("approved").length },
     { value: "completed",        label: getTranslation(language, "completed"), count: filteredRequests("completed").length },
     { value: "rejected_canceled",label: getTranslation(language, "rejected"),  count: filteredRequests("rejected_canceled").length },
+    { value: "all",              label: getTranslation(language, "all"),       count: adRequests.length },
   ];
 
   return (
