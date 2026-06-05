@@ -27,7 +27,11 @@ export async function apiGet(endpoint) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     credentials: "include",
   });
-  if (!response.ok) throw new Error("Failed to fetch data");
+  if (!response.ok) {
+    const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to fetch data");
+    err.status = response.status;
+    throw err;
+  }
   return await response.json();
 }
 
@@ -40,7 +44,11 @@ export async function apiPost(endpoint, data, isFormData = false) {
   };
 
   const response = await fetch(`${BASE_URL}${endpoint}`, options);
-  if (!response.ok) throw new Error(await response.text());
+  if (!response.ok) {
+    const err = new Error(response.status === 401 ? "Unauthorized" : await response.text());
+    err.status = response.status;
+    throw err;
+  }
   return await response.json();
 }
 
@@ -53,7 +61,11 @@ export async function apiPut(endpoint, data) {
     },
     body: JSON.stringify(data),
   });
-  if (!response.ok) throw new Error("Failed to update data");
+  if (!response.ok) {
+    const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to update data");
+    err.status = response.status;
+    throw err;
+  }
   return await response.json();
 }
 
@@ -62,7 +74,11 @@ export async function apiDelete(endpoint) {
     method: "DELETE",
     credentials: "include",
   });
-  if (!response.ok) throw new Error("Failed to delete data");
+  if (!response.ok) {
+    const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to delete data");
+    err.status = response.status;
+    throw err;
+  }
   return await response.json();
 }
 

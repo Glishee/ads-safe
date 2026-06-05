@@ -76,7 +76,7 @@ export default function AdvertiserDashboard() {
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-      if (error.message?.includes("User not authenticated") || error.status === 401) {
+      if (error.status === 401 || error.message?.includes("Unauthorized") || error.message?.includes("User not authenticated")) {
         navigate(createPageUrl("Login"));
       } else {
         setFetchError(error.message || "Failed to load orders");
