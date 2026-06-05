@@ -10,7 +10,7 @@ async function publicGet(endpoint) {
     try {
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         mode: "cors",
-        credentials: "include",
+        credentials: "omit",
       });
       if (!response.ok) throw new Error("Failed to fetch data"); // HTTP error — don't retry
       return await response.json();

@@ -19,13 +19,20 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 allowed_origins = [o.strip() for o in os.getenv("FRONTEND_URL", "http://localhost:5173").split(",")]
 
+def _needs_credentials(path):
+    """Auth endpoints need session cookies; public endpoints don't."""
+    return path.startswith('/api/auth/')
+
 @app.before_request
 def handle_preflight():
     if request.method == 'OPTIONS':
         origin = request.headers.get('Origin', '')
         res = make_response()
-        res.headers['Access-Control-Allow-Origin'] = origin or '*'
-        res.headers['Access-Control-Allow-Credentials'] = 'true'
+        if _needs_credentials(request.path) and origin in allowed_origins:
+            res.headers['Access-Control-Allow-Origin'] = origin
+            res.headers['Access-Control-Allow-Credentials'] = 'true'
+        else:
+            res.headers['Access-Control-Allow-Origin'] = '*'
         res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         res.headers['Access-Control-Max-Age'] = '86400'
@@ -34,8 +41,12 @@ def handle_preflight():
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '')
-    response.headers['Access-Control-Allow-Origin'] = origin or '*'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    if _needs_credentials(request.path) and origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    else:
+        # Wildcard — no credentials header (browsers reject credentials + wildcard)
+        response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
