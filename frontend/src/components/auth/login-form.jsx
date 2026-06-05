@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@/api/entities";
 import { createPageUrl } from "@/utils";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Translate from "@/components/translation/translate";
-import { AlertCircle, Mail, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertCircle, Mail, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getTranslation } from "@/components/translation/translations";
 
@@ -18,15 +18,6 @@ export default function LoginForm({ language }) {
   const [isLoading, setIsLoading]   = useState(false);
   const [error, setError]           = useState("");
   const [emailNotVerified, setEmailNotVerified] = useState(false);
-  const [slowLoad, setSlowLoad] = useState(false);
-  const [retryCountdown, setRetryCountdown] = useState(0);
-  const slowLoadTimerRef = useRef(null);
-  const countdownRef = useRef(null);
-  const emailRef = useRef(email);
-  const passwordRef = useRef(password);
-
-  useEffect(() => { emailRef.current = email; }, [email]);
-  useEffect(() => { passwordRef.current = password; }, [password]);
 
   // Resend flow
   const [resendEmail, setResendEmail]   = useState("");
@@ -34,19 +25,14 @@ export default function LoginForm({ language }) {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [showResendForm, setShowResendForm] = useState(false);
 
-  const isNetworkError = (msg) =>
-    !msg || msg === "Load failed" || msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("network");
-
-  const doLogin = async (emailVal, passwordVal) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setIsLoading(true);
     setError("");
-    setSlowLoad(false);
-    setRetryCountdown(0);
-    clearInterval(countdownRef.current);
-    slowLoadTimerRef.current = setTimeout(() => setSlowLoad(true), 5000);
+    setEmailNotVerified(false);
 
     try {
-      const user = await User.login({ email: emailVal, password: passwordVal });
+      const user = await User.login({ email, password });
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
       } else if (user.application_role === "channel_owner") {
@@ -59,44 +45,14 @@ export default function LoginForm({ language }) {
       try { body = JSON.parse(err.message); } catch (_) {}
       if (body.email_not_verified) {
         setEmailNotVerified(true);
-        setResendEmail(emailVal);
-      } else if (isNetworkError(err.message)) {
-        // Auto-retry countdown
-        let secs = 10;
-        setRetryCountdown(secs);
-        countdownRef.current = setInterval(() => {
-          secs -= 1;
-          if (secs <= 0) {
-            clearInterval(countdownRef.current);
-            setRetryCountdown(0);
-            doLogin(emailRef.current, passwordRef.current);
-          } else {
-            setRetryCountdown(secs);
-          }
-        }, 1000);
+        setResendEmail(email);
       } else {
         setError(err.message || "Login failed. Please try again.");
       }
     } finally {
-      clearTimeout(slowLoadTimerRef.current);
       setIsLoading(false);
-      setSlowLoad(false);
     }
   };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    clearInterval(countdownRef.current);
-    setRetryCountdown(0);
-    setEmailNotVerified(false);
-    doLogin(email, password);
-  };
-
-  // Clean up on unmount
-  useEffect(() => () => {
-    clearTimeout(slowLoadTimerRef.current);
-    clearInterval(countdownRef.current);
-  }, []);
 
   const handleResend = async (e) => {
     e.preventDefault();
@@ -162,28 +118,7 @@ export default function LoginForm({ language }) {
         </div>
       )}
 
-      {retryCountdown > 0 && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-amber-800 text-sm">
-            <RefreshCw className="h-4 w-4 animate-spin shrink-0" />
-            <span>
-              {getTranslation(language, "serverWarmingUp") || "Server is starting up…"}
-              {" "}<span className="font-semibold">{retryCountdown}s</span>
-            </span>
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="shrink-0 border-amber-300 text-amber-800 hover:bg-amber-100 h-7 text-xs"
-            onClick={() => doLogin(email, password)}
-          >
-            {getTranslation(language, "retry") || "Retry now"}
-          </Button>
-        </div>
-      )}
-
-      {error && !retryCountdown && (
+      {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
@@ -230,11 +165,6 @@ export default function LoginForm({ language }) {
             <Translate language={language} textKey="login" />
           )}
         </Button>
-        {slowLoad && (
-          <p className="text-xs text-amber-600 text-center mt-1">
-            {getTranslation(language, "serverWarmingUp") || "Server is starting up, please wait…"}
-          </p>
-        )}
       </form>
 
       <div className="mt-4 text-center text-sm">
