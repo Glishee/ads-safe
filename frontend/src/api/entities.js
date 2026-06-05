@@ -1,5 +1,12 @@
 const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api";
 
+// For public endpoints that don't need session cookies.
+// credentials: "omit" avoids iOS Safari ITP blocking cross-origin requests.
+async function publicGet(endpoint) {
+  const response = await fetch(`${BASE_URL}${endpoint}`);
+  if (!response.ok) throw new Error("Failed to fetch data");
+  return response.json();
+}
 
 export async function apiGet(endpoint) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -53,38 +60,36 @@ export const api = {
 
 
 export const TelegramChannel = {
-  getAll: () => api.get("/channels"),
-  get: (id) => api.get(`/channels/${id}`),
-  getById: (id) => api.get(`/channels/${id}`),
+  getAll: () => publicGet("/channels"),
+  get: (id) => publicGet(`/channels/${id}`),
+  getById: (id) => publicGet(`/channels/${id}`),
   create: (data) => api.post("/channels", data),
   update: (id, data) => api.put(`/channels/${id}`, data),
   delete: (id) => api.delete(`/channels/${id}`),
   approve: (id) => api.post(`/channels/${id}/approve`, {}),
   reject: (id) => api.post(`/channels/${id}/reject`, {}),
   filter: (params) =>
-    api.get(`/channels?${new URLSearchParams(params).toString()}`),
+    publicGet(`/channels?${new URLSearchParams(params).toString()}`),
 };
 
 
 export const AdRequest = {
-  getAll: () => api.get("/ad-requests"),
-  get: (id) => api.get(`/ad-requests/${id}`),
-  getByAdvertiser: (id) => api.get(`/ad-requests?advertiser_id=${id}`),
-  getByChannel: (id) => api.get(`/ad-requests?channel_id=${id}`),
-
+  getAll: () => publicGet("/ad-requests"),
+  get: (id) => publicGet(`/ad-requests/${id}`),
+  getByAdvertiser: (id) => publicGet(`/ad-requests?advertiser_id=${id}`),
+  getByChannel: (id) => publicGet(`/ad-requests?channel_id=${id}`),
 
   create: (formData) => apiPost("/ad-requests", formData, true),
 
   update: (id, data) => api.put(`/ad-requests/${id}`, data),
   delete: (id) => api.delete(`/ad-requests/${id}`),
   filter: (params) =>
-    api.get(`/ad-requests?${new URLSearchParams(params).toString()}`),
-
+    publicGet(`/ad-requests?${new URLSearchParams(params).toString()}`),
 
   approve: (id) => api.post(`/ad-requests/${id}/approve`, {}),
   reject: (id, reason = "Rejected by admin") =>
     api.post(`/ad-requests/${id}/reject`, { reason }),
-  list: () => api.get("/ad-requests"),
+  list: () => publicGet("/ad-requests"),
 };
 
 
