@@ -4,15 +4,22 @@ import os
 
 load_dotenv()
 
+from extensions import limiter
 from routes.user_routes import user_bp
 from routes.channels import channel_bp
 from routes.upload import upload_bp
 from routes.ad_requests import ad_request_bp
 from routes.llm import llm_bp
 from routes.telegram_api import telegram_bp
+from routes.verification import verification_bp
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "your-super-secret-key")
+secret_key = os.getenv("SECRET_KEY")
+if not secret_key:
+    import warnings
+    warnings.warn("SECRET_KEY not set — using insecure default. Set SECRET_KEY in .env for production.")
+    secret_key = "dev-insecure-default-change-in-production"
+app.secret_key = secret_key
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
@@ -51,12 +58,15 @@ def add_cors_headers(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     return response
 
+limiter.init_app(app)
+
 app.register_blueprint(user_bp, url_prefix='/api/auth')
 app.register_blueprint(channel_bp, url_prefix='/api')
 app.register_blueprint(upload_bp, url_prefix="/api")
 app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")
+app.register_blueprint(verification_bp, url_prefix="/api")
 
 @app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
 def ping():

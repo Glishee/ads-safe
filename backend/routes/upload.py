@@ -1,8 +1,11 @@
 import os
+import uuid
 import cloudinary
 import cloudinary.uploader
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from werkzeug.utils import secure_filename
+from middleware.auth import require_auth
+from extensions import limiter
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -23,6 +26,8 @@ UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @upload_bp.route('/upload', methods=['POST'])
+@require_auth
+@limiter.limit("20 per hour", key_func=lambda: session.get("user_id", "anon"))
 def upload_file():
     if 'file' not in request.files:
         return jsonify({'message': 'No file part'}), 400
@@ -39,10 +44,11 @@ def upload_file():
                 resource_type="auto"
             )
             return jsonify({'url': result['secure_url']})
-        except Exception as e:
-            return jsonify({'message': f'Cloudinary upload failed: {str(e)}'}), 500
+        except Exception:
+            return jsonify({'message': 'Cloudinary upload failed'}), 500
     else:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        ext = os.path.splitext(secure_filename(file.filename))[1].lower()
+        safe_filename = f"{uuid.uuid4().hex}{ext}"
+        file_path = os.path.join(UPLOAD_FOLDER, safe_filename)
         file.save(file_path)
-        return jsonify({'url': f'/static/uploads/{filename}'})
+        return jsonify({'url': f'/static/uploads/{safe_filename}'})

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from models.user_model import users_collection
+from extensions import limiter
 import traceback
 import uuid
 import os
@@ -80,6 +81,7 @@ def _send_verification_email(to_email, username, token):
 # ---------------------------------------------------------------------------
 
 @user_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     try:
         data = request.get_json()
@@ -158,6 +160,7 @@ def resend_verification():
 
 
 @user_bp.route('/login', methods=['POST'])
+@limiter.limit("10 per minute")
 def login():
     data     = request.get_json()
     email    = data.get('email')

@@ -2,12 +2,14 @@ from flask import Blueprint, request, jsonify
 import os
 import re
 import requests
+from middleware.auth import require_auth
 
 telegram_bp = Blueprint('telegram_api', __name__)
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 @telegram_bp.route('/get_channel_info', methods=['POST', 'OPTIONS'])
+@require_auth
 def get_channel_info():
     data = request.get_json()
     link = data.get("link", "").strip()
