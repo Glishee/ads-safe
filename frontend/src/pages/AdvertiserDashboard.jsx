@@ -72,8 +72,7 @@ export default function AdvertiserDashboard() {
       if (error.message?.includes("User not authenticated") || error.status === 401) {
         navigate(createPageUrl("Login"));
       } else {
-        const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:5000");
-        setFetchError(`${error.message} — API: ${apiBase}`);
+        setFetchError(error.message || "Failed to load orders");
       }
     } finally {
       setLoading(false);
@@ -108,9 +107,8 @@ export default function AdvertiserDashboard() {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-500">
-            {getTranslation(language, "loading")}
-          </p>
+          <p className="text-gray-500">{getTranslation(language, "loading")}</p>
+          <p className="text-xs text-gray-400">Connecting to server…</p>
         </div>
       </div>
     );

@@ -1,11 +1,25 @@
 const BASE_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000") + "/api";
 
-// For public endpoints that don't need session cookies.
-// credentials: "omit" avoids iOS Safari ITP blocking cross-origin requests.
+// Fetches a public (no-auth) endpoint, retrying on network failures so Railway
+// free-tier wake-up timeouts don't permanently block the request.
 async function publicGet(endpoint) {
-  const response = await fetch(`${BASE_URL}${endpoint}`);
-  if (!response.ok) throw new Error("Failed to fetch data");
-  return response.json();
+  const retryDelays = [0, 3000, 5000, 8000];
+  let lastError;
+  for (const delay of retryDelays) {
+    if (delay > 0) await new Promise(r => setTimeout(r, delay));
+    try {
+      const response = await fetch(`${BASE_URL}${endpoint}`, {
+        mode: "cors",
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("Failed to fetch data"); // HTTP error — don't retry
+      return await response.json();
+    } catch (err) {
+      if (err.message === "Failed to fetch data") throw err; // HTTP error — stop
+      lastError = err; // network error — retry after delay
+    }
+  }
+  throw lastError;
 }
 
 export async function apiGet(endpoint) {
