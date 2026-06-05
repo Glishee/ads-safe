@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "@/api/entities";
 import { createPageUrl } from "@/utils";
@@ -18,6 +18,8 @@ export default function LoginForm({ language }) {
   const [isLoading, setIsLoading]   = useState(false);
   const [error, setError]           = useState("");
   const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [slowLoad, setSlowLoad] = useState(false);
+  const slowLoadTimerRef = useRef(null);
 
   // Resend flow
   const [resendEmail, setResendEmail]   = useState("");
@@ -25,11 +27,16 @@ export default function LoginForm({ language }) {
   const [resendSuccess, setResendSuccess] = useState(false);
   const [showResendForm, setShowResendForm] = useState(false);
 
+  const isNetworkError = (msg) =>
+    !msg || msg === "Load failed" || msg === "Failed to fetch" || msg.includes("NetworkError") || msg.includes("network");
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSlowLoad(false);
     setEmailNotVerified(false);
+    slowLoadTimerRef.current = setTimeout(() => setSlowLoad(true), 5000);
 
     try {
       const user = await User.login({ email, password });
@@ -46,11 +53,15 @@ export default function LoginForm({ language }) {
       if (body.email_not_verified) {
         setEmailNotVerified(true);
         setResendEmail(email);
+      } else if (isNetworkError(err.message)) {
+        setError(getTranslation(language, "serverWarmingUp") || "Server is starting up, please wait and try again…");
       } else {
         setError(err.message || "Login failed. Please try again.");
       }
     } finally {
+      clearTimeout(slowLoadTimerRef.current);
       setIsLoading(false);
+      setSlowLoad(false);
     }
   };
 
@@ -165,6 +176,11 @@ export default function LoginForm({ language }) {
             <Translate language={language} textKey="login" />
           )}
         </Button>
+        {slowLoad && (
+          <p className="text-xs text-amber-600 text-center mt-1">
+            {getTranslation(language, "serverWarmingUp") || "Server is starting up, please wait…"}
+          </p>
+        )}
       </form>
 
       <div className="mt-4 text-center text-sm">
