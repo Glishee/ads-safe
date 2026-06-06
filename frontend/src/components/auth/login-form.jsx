@@ -32,7 +32,7 @@ export default function LoginForm({ language }) {
     setEmailNotVerified(false);
 
     try {
-      const user = await User.login({ email: email.trim().toLowerCase(), password });
+      const user = await User.login({ email: email.trim(), password });
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
       } else if (user.application_role === "channel_owner") {
