@@ -32,7 +32,7 @@ export default function LoginForm({ language }) {
     setEmailNotVerified(false);
 
     try {
-      const user = await User.login({ email, password });
+      const user = await User.login({ email: email.trim().toLowerCase(), password });
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
       } else if (user.application_role === "channel_owner") {
@@ -138,6 +138,9 @@ export default function LoginForm({ language }) {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
           />
         </div>
         <div className="space-y-2">
@@ -152,6 +155,9 @@ export default function LoginForm({ language }) {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
           />
         </div>
         <Button

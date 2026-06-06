@@ -61,7 +61,12 @@ export async function apiPost(endpoint, data, isFormData = false) {
   const response = await fetch(`${BASE_URL}${endpoint}`, options);
   if (!response.ok) {
     if (response.status === 401) clearAuth();
-    const err = new Error(response.status === 401 ? "Unauthorized" : await response.text());
+    const text = await response.text();
+    let message = text;
+    if (response.status === 401) {
+      try { message = JSON.parse(text).message || "Unauthorized"; } catch (_) { message = "Unauthorized"; }
+    }
+    const err = new Error(message);
     err.status = response.status;
     throw err;
   }
