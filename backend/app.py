@@ -66,7 +66,7 @@ app.register_blueprint(verification_bp, url_prefix="/api")
 @app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
 def ping():
     from flask import jsonify
-    return jsonify({"ping": "pong", "origin": request.headers.get('Origin', 'none')})
+    return jsonify({"ping": "pong", "origin": request.headers.get('Origin', 'none'), "token_auth": True})
 
 @app.route('/health')
 def health():
