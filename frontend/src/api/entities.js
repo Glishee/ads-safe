@@ -1,6 +1,14 @@
 export const BACKEND_URL = import.meta.env.VITE_API_URL ?? "";
 const BASE_URL = BACKEND_URL + "/api";
 
+function authHeaders(isFormData = false) {
+  const token = localStorage.getItem("auth_token");
+  const headers = {};
+  if (!isFormData) headers["Content-Type"] = "application/json";
+  if (token) headers["X-Auth-Token"] = token;
+  return headers;
+}
+
 // Fetches a public (no-auth) endpoint, retrying on network failures so Railway
 // free-tier wake-up timeouts don't permanently block the request.
 async function publicGet(endpoint) {
@@ -26,6 +34,7 @@ async function publicGet(endpoint) {
 export async function apiGet(endpoint) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     credentials: "include",
+    headers: authHeaders(),
   });
   if (!response.ok) {
     const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to fetch data");
@@ -40,7 +49,7 @@ export async function apiPost(endpoint, data, isFormData = false) {
     method: "POST",
     credentials: "include",
     body: isFormData ? data : JSON.stringify(data),
-    headers: isFormData ? undefined : { "Content-Type": "application/json" },
+    headers: authHeaders(isFormData),
   };
 
   const response = await fetch(`${BASE_URL}${endpoint}`, options);
@@ -56,9 +65,7 @@ export async function apiPut(endpoint, data) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: "PUT",
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
   if (!response.ok) {
@@ -73,6 +80,7 @@ export async function apiDelete(endpoint) {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: "DELETE",
     credentials: "include",
+    headers: authHeaders(),
   });
   if (!response.ok) {
     const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to delete data");
@@ -128,11 +136,13 @@ export const User = {
   login: async (credentials) => {
     const data = await api.post("/auth/login", credentials);
     localStorage.setItem("user", JSON.stringify(data));
+    if (data.auth_token) localStorage.setItem("auth_token", data.auth_token);
     return data;
   },
   register: (data) => api.post("/auth/register", data),
   logout: async () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("auth_token");
     return api.post("/auth/logout", {});
   },
   me: async () => {

@@ -1,3 +1,7 @@
+import hmac
+import hashlib
+import base64
+import os
 from functools import wraps
 from flask import session, jsonify, request
 from bson import ObjectId
@@ -5,8 +9,37 @@ from models.user_model import users_collection
 from models.channel_model import channels_collection
 
 
+def _make_token(user_id):
+    secret = os.getenv("SECRET_KEY", "dev-insecure-default")
+    sig = hmac.new(secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()
+    return base64.b64encode(f"{user_id}:{sig}".encode()).decode()
+
+
+def _verify_token(token):
+    try:
+        decoded = base64.b64decode(token.encode()).decode()
+        user_id, sig = decoded.rsplit(":", 1)
+        secret = os.getenv("SECRET_KEY", "dev-insecure-default")
+        expected = hmac.new(secret.encode(), user_id.encode(), hashlib.sha256).hexdigest()
+        if hmac.compare_digest(sig, expected):
+            return user_id
+    except Exception:
+        pass
+    return None
+
+
+def get_user_id():
+    """Returns authenticated user_id from X-Auth-Token header or session."""
+    token = request.headers.get("X-Auth-Token")
+    if token:
+        uid = _verify_token(token)
+        if uid:
+            return uid
+    return session.get("user_id")
+
+
 def _get_current_user():
-    user_id = session.get("user_id")
+    user_id = get_user_id()
     if not user_id:
         return None
     try:
@@ -20,7 +53,7 @@ def require_auth(f):
     def decorated(*args, **kwargs):
         if request.method == "OPTIONS":
             return f(*args, **kwargs)
-        if not session.get("user_id"):
+        if not get_user_id():
             return jsonify({"message": "Authentication required"}), 401
         return f(*args, **kwargs)
     return decorated

@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from models.user_model import users_collection
 from extensions import limiter
+from middleware.auth import _make_token, get_user_id
 import traceback
 import uuid
 import os
@@ -176,20 +177,22 @@ def login():
     if not user.get('is_email_verified', True):
         return jsonify({'message': 'Please verify your email before logging in', 'email_not_verified': True}), 403
 
-    session['user_id'] = str(user['_id'])
+    user_id = str(user['_id'])
+    session['user_id'] = user_id
 
     return jsonify({
         'message':          'Login successful',
-        'id':               str(user['_id']),
+        'id':               user_id,
         'username':         user['username'],
         'role':             user['role'],
         'application_role': user.get('application_role', None),
+        'auth_token':       _make_token(user_id),
     }), 200
 
 
 @user_bp.route('/profile', methods=['PUT'])
 def update_profile():
-    user_id = session.get("user_id")
+    user_id = get_user_id()
     if not user_id:
         return jsonify({'message': 'Not logged in'}), 401
 
@@ -240,7 +243,7 @@ def update_profile():
 
 @user_bp.route('/profile', methods=['GET'])
 def profile():
-    user_id = session.get("user_id")
+    user_id = get_user_id()
     if not user_id:
         return jsonify({'message': 'Not logged in'}), 401
 
@@ -265,7 +268,7 @@ def logout():
 
 @user_bp.route('/users/<user_id>', methods=['GET'])
 def get_user_by_id(user_id):
-    requester_id = session.get("user_id")
+    requester_id = get_user_id()
     if not requester_id:
         return jsonify({'message': 'Not logged in'}), 401
 
@@ -287,7 +290,7 @@ def get_user_by_id(user_id):
 
 @user_bp.route('/users', methods=['GET'])
 def list_users():
-    user_id = session.get("user_id")
+    user_id = get_user_id()
     if not user_id:
         return jsonify({'message': 'Not logged in'}), 401
 
