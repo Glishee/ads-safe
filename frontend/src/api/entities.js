@@ -9,6 +9,11 @@ function authHeaders(isFormData = false) {
   return headers;
 }
 
+function clearAuth() {
+  localStorage.removeItem("user");
+  localStorage.removeItem("auth_token");
+}
+
 // Fetches a public (no-auth) endpoint, retrying on network failures so Railway
 // free-tier wake-up timeouts don't permanently block the request.
 async function publicGet(endpoint) {
@@ -37,6 +42,7 @@ export async function apiGet(endpoint) {
     headers: authHeaders(),
   });
   if (!response.ok) {
+    if (response.status === 401) clearAuth();
     const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to fetch data");
     err.status = response.status;
     throw err;
@@ -54,6 +60,7 @@ export async function apiPost(endpoint, data, isFormData = false) {
 
   const response = await fetch(`${BASE_URL}${endpoint}`, options);
   if (!response.ok) {
+    if (response.status === 401) clearAuth();
     const err = new Error(response.status === 401 ? "Unauthorized" : await response.text());
     err.status = response.status;
     throw err;
@@ -69,6 +76,7 @@ export async function apiPut(endpoint, data) {
     body: JSON.stringify(data),
   });
   if (!response.ok) {
+    if (response.status === 401) clearAuth();
     const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to update data");
     err.status = response.status;
     throw err;
@@ -83,6 +91,7 @@ export async function apiDelete(endpoint) {
     headers: authHeaders(),
   });
   if (!response.ok) {
+    if (response.status === 401) clearAuth();
     const err = new Error(response.status === 401 ? "Unauthorized" : "Failed to delete data");
     err.status = response.status;
     throw err;

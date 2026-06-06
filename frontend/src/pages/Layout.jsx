@@ -73,10 +73,10 @@ function LayoutContent({ children, currentPageName }) {
 
 
       } catch (error) {
-        console.log("User not logged in or error fetching user:", error);
+        setUser(null);
         if (!isPublicPage && currentPageName !== "Login") {
-  navigate(createPageUrl("Login"));
-}
+          navigate(createPageUrl("Login"));
+        }
       } finally {
         setLoading(false);
       }
