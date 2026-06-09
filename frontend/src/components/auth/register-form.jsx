@@ -166,10 +166,10 @@ export default function RegisterForm({ language }) {
               onValueChange={handleRoleChange}
               className="space-y-4"
             >
-              <div className={`flex items-center space-x-2 p-4 rounded-lg border ${formData.application_role === 'advertiser' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+              <div className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer ${language === "he" ? "flex-row-reverse" : ""} ${formData.application_role === 'advertiser' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`} onClick={() => handleRoleChange("advertiser")}>
                 <RadioGroupItem value="advertiser" id="advertiser" />
-                <div className="grid gap-1">
-                  <Label htmlFor="advertiser" className="font-medium">
+                <div className={`grid gap-1 flex-1 ${language === "he" ? "text-right" : ""}`}>
+                  <Label htmlFor="advertiser" className="font-medium cursor-pointer">
                     <Translate language={language} textKey="advertiserRole" />
                   </Label>
                   <p className="text-sm text-gray-500">
@@ -177,10 +177,10 @@ export default function RegisterForm({ language }) {
                   </p>
                 </div>
               </div>
-              <div className={`flex items-center space-x-2 p-4 rounded-lg border ${formData.application_role === 'channel_owner' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+              <div className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer ${language === "he" ? "flex-row-reverse" : ""} ${formData.application_role === 'channel_owner' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`} onClick={() => handleRoleChange("channel_owner")}>
                 <RadioGroupItem value="channel_owner" id="channel_owner" />
-                <div className="grid gap-1">
-                  <Label htmlFor="channel_owner" className="font-medium">
+                <div className={`grid gap-1 flex-1 ${language === "he" ? "text-right" : ""}`}>
+                  <Label htmlFor="channel_owner" className="font-medium cursor-pointer">
                     <Translate language={language} textKey="channelOwnerRole" />
                   </Label>
                   <p className="text-sm text-gray-500">
