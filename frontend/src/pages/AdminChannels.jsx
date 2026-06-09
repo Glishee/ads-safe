@@ -272,20 +272,21 @@ export default function AdminChannels() {
 
       {/* Reject dialog — with preset reasons + free text */}
       {(() => {
-        const presets = language === "en"
+        const isHe = language === "he";
+        const presets = isHe
           ? [
+              "הערוץ אינו עומד בדרישות התוכן שלנו",
+              "מספר מנויים לא מספיק",
+              "ערוץ לא פעיל (אין פרסומים אחרונים)",
+              "הערוץ מכיל תוכן אסור",
+              "קישור לערוץ לא חוקי או לא נגיש",
+            ]
+          : [
               "Channel doesn't meet our content requirements",
               "Insufficient subscriber count",
               "Inactive channel (no recent posts)",
               "Channel contains prohibited content",
               "Invalid or inaccessible channel link",
-            ]
-          : [
-              "Канал не соответствует требованиям к контенту",
-              "Недостаточное количество подписчиков",
-              "Неактивный канал (нет недавних публикаций)",
-              "Канал содержит запрещённый контент",
-              "Недействительная или недоступная ссылка на канал",
             ];
         return (
           <Dialog
@@ -295,26 +296,25 @@ export default function AdminChannels() {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle className="text-red-600">
-                  {language === "en" ? "Reject channel" : "Отклонить канал"}
+                  {isHe ? "דחיית ערוץ" : "Reject channel"}
                 </DialogTitle>
                 <DialogDescription>
-                  {language === "en" ? "Rejecting" : "Отклонение"}{" "}
+                  {isHe ? "דחיית" : "Rejecting"}{" "}
                   <strong>{selectedChannel?.name}</strong>.{" "}
-                  {language === "en"
-                    ? "Choose a reason or write your own — it will be shown to the channel owner."
-                    : "Выберите причину или напишите свою — она будет показана владельцу канала."}
+                  {isHe
+                    ? "בחרו סיבה או כתבו משלכם — היא תוצג לבעל הערוץ."
+                    : "Choose a reason or write your own — it will be shown to the channel owner."}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4 py-2">
-                {/* Preset reasons */}
                 <div className="flex flex-wrap gap-2">
                   {presets.map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setRejectionReason(preset)}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors text-left ${
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isHe ? "text-right" : "text-left"} ${
                         rejectionReason === preset
                           ? "bg-red-50 border-red-400 text-red-700 font-medium"
                           : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
@@ -325,13 +325,13 @@ export default function AdminChannels() {
                   ))}
                 </div>
 
-                {/* Free text */}
                 <Textarea
-                  placeholder={language === "en" ? "Or write a custom reason…" : "Или напишите свою причину…"}
+                  placeholder={isHe ? "…או כתבו סיבה משלכם" : "Or write a custom reason…"}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={3}
-                  className="text-sm resize-none"
+                  className={`text-sm resize-none ${isHe ? "text-right" : ""}`}
+                  dir={isHe ? "rtl" : "ltr"}
                 />
               </div>
 
@@ -346,7 +346,7 @@ export default function AdminChannels() {
                 >
                   {loading
                     ? getTranslation(language, "processing")
-                    : language === "en" ? "Reject" : "Отклонить"}
+                    : isHe ? "דחה" : "Reject"}
                 </Button>
               </DialogFooter>
             </DialogContent>
