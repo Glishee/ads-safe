@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { User } from "@/api/entities";
 import { TelegramChannel } from "@/api/entities";
 import { getTranslation } from "@/components/translation/translations";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import { createPageUrl } from "@/utils";
 
 import { Button } from "@/components/ui/button";
@@ -26,10 +27,10 @@ import {
 
 export default function AdminChannels() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [searchParams] = useSearchParams();
   const statusFilter = searchParams.get("status") || "pending";
 
-  const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
   const [error, setError] = useState("");
@@ -37,7 +38,7 @@ export default function AdminChannels() {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
-  
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -48,10 +49,6 @@ export default function AdminChannels() {
           navigate(createPageUrl("Home"));
           return;
         }
-        if (userData.language_preference) {
-          setLanguage(userData.language_preference);
-        }
-        
         const allChannels = await TelegramChannel.getAll();
         setChannels(allChannels);
       } catch (err) {
@@ -62,7 +59,7 @@ export default function AdminChannels() {
       }
     };
     fetchData();
-  }, [navigate, language]);
+  }, [navigate]);
 
   const filteredChannels = (() => {
     if (statusFilter === "all") return channels;
