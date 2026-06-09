@@ -99,8 +99,7 @@ function LayoutContent({ children, currentPageName }) {
     if (isAdmin) { // Platform admin
       return [
         { name: "dashboard", path: "AdminDashboard", icon: <Home className="h-5 w-5" /> },
-        { name: "pendingChannels", path: "AdminChannels?status=pending", icon: <MessageSquare className="h-5 w-5" /> },
-        { name: "approvedChannels", path: "AdminChannels?status=approved", icon: <Users className="h-5 w-5" /> },
+        { name: "manageChannels", path: "AdminChannels", icon: <MessageSquare className="h-5 w-5" /> },
         { name: "allUsers", path: "AdminUsers", icon: <UserIcon className="h-5 w-5" /> },
         { name: "systemSettings", path: "AdminSettings", icon: <Settings className="h-5 w-5" /> }
       ];

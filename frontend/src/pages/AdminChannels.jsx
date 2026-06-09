@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { User } from "@/api/entities";
 import { TelegramChannel } from "@/api/entities";
 import { getTranslation } from "@/components/translation/translations";
@@ -25,23 +25,16 @@ import {
 
 export default function AdminChannels() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status") || "pending";
+
   const [language, setLanguage] = useState("en");
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
-  const [filteredChannels, setFilteredChannels] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("pending"); // Default to pending
   const [error, setError] = useState("");
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'approve' or 'reject'
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get("status");
-    if (tabParam && ["pending", "approved", "rejected"].includes(tabParam)) {
-      setStatusFilter(tabParam);
-    }
-  }, []);
+  const [confirmAction, setConfirmAction] = useState(null);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -69,21 +62,12 @@ export default function AdminChannels() {
     fetchData();
   }, [navigate, language]);
 
-  useEffect(() => {
-    let results = channels;
-    if (statusFilter !== "all") {
-      const isApproved = statusFilter === "approved";
-      const isRejected = statusFilter === "rejected";
-      if (statusFilter === "pending") {
-         results = results.filter(channel => !channel.is_approved && !channel.is_rejected); // Assuming a new 'is_rejected' field or logic
-      } else if (statusFilter === "approved"){
-         results = results.filter(channel => channel.is_approved);
-      } else if (statusFilter === "rejected") {
-         results = results.filter(channel => channel.is_rejected); // Assuming is_rejected field exists
-      }
-    }
-    setFilteredChannels(results);
-  }, [channels, statusFilter]);
+  const filteredChannels = (() => {
+    if (statusFilter === "all") return channels;
+    if (statusFilter === "approved") return channels.filter(c => c.is_approved);
+    if (statusFilter === "rejected") return channels.filter(c => c.is_rejected);
+    return channels.filter(c => !c.is_approved && !c.is_rejected); // pending
+  })();
 
   const openConfirmationDialog = (channel, action) => {
     setSelectedChannel(channel);
