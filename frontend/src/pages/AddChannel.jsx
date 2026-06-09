@@ -395,7 +395,7 @@ export default function AddChannel() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="post_price">{getTranslation(language, "pricePerPost")} ($)</Label>
+                <Label htmlFor="post_price">{getTranslation(language, "pricePerPost")} ( ₪)</Label>
                 <Input id="post_price" name="post_price" type="number" step="0.01" value={channelData.post_price} onChange={handleInputChange} required placeholder="e.g., 25.50" />
               </div>
             </div>

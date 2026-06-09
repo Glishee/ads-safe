@@ -162,7 +162,7 @@ export default function ChannelOwnerDashboard() {
             <DollarSign className="h-5 w-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${getTotalEarnings().toFixed(2)}</div>
+            <div className="text-2xl font-bold">₪{getTotalEarnings().toFixed(2)}</div>
             <p className="text-xs text-gray-500">{getTranslation(language, "fromCompletedAds")}</p>
           </CardContent>
         </Card>
@@ -227,7 +227,7 @@ export default function ChannelOwnerDashboard() {
                         {request.ad_text}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        ${request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
+                        ₪{request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
                       </p>
                     </div>
                     <Badge variant="outline" className={`${statusBadgeColors[request.status] || statusBadgeColors.canceled} border text-xs shrink-0`}>
@@ -280,7 +280,7 @@ export default function ChannelOwnerDashboard() {
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate" title={channel.name}>{channel.name}</p>
                         <p className="text-xs text-gray-500 truncate">
-                          ${channel.post_price?.toFixed(2)} • {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}
+                          ₪{channel.post_price?.toFixed(2)} • {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}
                         </p>
                       </div>
                     </div>

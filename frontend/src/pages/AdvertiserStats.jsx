@@ -110,7 +110,7 @@ export default function AdvertiserStats() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">{getTranslation(language, "totalSpent")}</p>
-                <p className="text-2xl font-bold">${totalSpent.toFixed(2)}</p>
+                <p className="text-2xl font-bold">₪{totalSpent.toFixed(2)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500 opacity-70" />
             </div>
@@ -190,7 +190,7 @@ export default function AdvertiserStats() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{ch?.name || chId}</p>
                     <p className="text-xs text-gray-500">
-                      {stats.count} {getTranslation(language, "ordersCount").toLowerCase()} · ${stats.spent.toFixed(2)}
+                      {stats.count} {getTranslation(language, "ordersCount").toLowerCase()} · ₪{stats.spent.toFixed(2)}
                     </p>
                   </div>
                 </div>

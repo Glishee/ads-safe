@@ -620,7 +620,7 @@ export default function AdminDashboard() {
                                     {getTranslation(language, "pending")}
                                   </Badge>
                                   <span className="text-sm text-gray-500">
-                                    {new Date(request.created_date).toLocaleDateString()} • ${request.price?.toFixed(2) || "0.00"}
+                                    {new Date(request.created_date).toLocaleDateString()} • ₪{request.price?.toFixed(2) || "0.00"}
                                   </span>
                                 </div>
                               </div>

@@ -65,7 +65,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color || p.fill }}>
           {p.name}: {typeof p.value === "number" && p.name?.toLowerCase().includes("$") === false
-            ? p.dataKey === "earnings" ? `$${p.value.toFixed(2)}` : p.value
+            ? p.dataKey === "earnings" ? `₪${p.value.toFixed(2)}` : p.value
             : p.value}
         </p>
       ))}
@@ -153,7 +153,7 @@ export default function ChannelOwnerStats() {
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalEarnings.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₪{totalEarnings.toFixed(2)}</div>
             <p className="text-xs text-gray-400">{completedAdsCount} {getTranslation(language, "completedAds")?.toLowerCase()}</p>
           </CardContent>
         </Card>
@@ -196,7 +196,7 @@ export default function ChannelOwnerStats() {
               <BarChart data={monthlyData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `$${v}`} width={52} />
+                <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `₪${v}`} width={52} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="earnings" name="Earnings" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -263,7 +263,7 @@ export default function ChannelOwnerStats() {
                     <div key={i}>
                       <div className="flex justify-between text-sm mb-1">
                         <span className="truncate max-w-[60%] font-medium" title={ch.name}>{ch.name}</span>
-                        <span className="text-gray-500 shrink-0">${ch.earnings.toFixed(2)} · {ch.count} ads</span>
+                        <span className="text-gray-500 shrink-0">₪{ch.earnings.toFixed(2)} · {ch.count} ads</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                         <div

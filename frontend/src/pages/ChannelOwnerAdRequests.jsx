@@ -165,7 +165,7 @@ export default function ChannelOwnerAdRequests() {
         <div className="px-4 pb-3">
           <p className="text-sm text-gray-700 line-clamp-2">{request.ad_text}</p>
           <p className="text-xs text-gray-400 mt-1">
-            ${request.price?.toFixed(2)} · {new Date(request.created_date).toLocaleDateString()}
+            ₪{request.price?.toFixed(2)} · {new Date(request.created_date).toLocaleDateString()}
           </p>
         </div>
 

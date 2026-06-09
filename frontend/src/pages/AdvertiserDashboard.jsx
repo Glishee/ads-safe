@@ -215,7 +215,7 @@ export default function AdvertiserDashboard() {
                 <DollarSign className="h-5 w-5 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${getTotalSpent().toFixed(2)}</div>
+                <div className="text-2xl font-bold">₪{getTotalSpent().toFixed(2)}</div>
               </CardContent>
             </Card>
             
@@ -272,7 +272,7 @@ export default function AdvertiserDashboard() {
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{channels[request.channel_id]?.name || getTranslation(language, "unknownChannel")}</p>
                         <p className="text-sm text-gray-500 truncate">
-                          ${request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
+                          ₪{request.price?.toFixed(2)} • {new Date(request.created_date).toLocaleDateString()}
                         </p>
                       </div>
                       <Badge
@@ -377,7 +377,7 @@ export default function AdvertiserDashboard() {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-lg font-bold">${request.price?.toFixed(2)}</p>
+                        <p className="text-lg font-bold">₪{request.price?.toFixed(2)}</p>
                         <p className="text-xs text-gray-500">
                           {new Date(request.created_date).toLocaleDateString()}
                         </p>

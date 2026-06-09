@@ -203,7 +203,7 @@ export default function AdminChannels() {
                       </TableCell>
                       <TableCell>{getTranslation(language, channel.category)}</TableCell>
                       <TableCell>{channel.subscribers_count?.toLocaleString()}</TableCell>
-                      <TableCell>${channel.post_price?.toFixed(2)}</TableCell>
+                      <TableCell>₪{channel.post_price?.toFixed(2)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={`${statusBadgeColors[currentStatus]} border`}>
                           {getTranslation(language, currentStatus)}

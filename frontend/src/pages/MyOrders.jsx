@@ -139,7 +139,7 @@ export default function MyOrders() {
                       </div>
                       <p className="text-sm text-gray-600 line-clamp-2">{order.ad_text}</p>
                       <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
-                        <span>${Number(order.price || 0).toFixed(2)}</span>
+                        <span>₪{Number(order.price || 0).toFixed(2)}</span>
                         {order.created_at && (
                           <span>{new Date(order.created_at).toLocaleDateString()}</span>
                         )}

@@ -452,7 +452,7 @@ export default function AdminChannelDetail() {
                                 <p className="text-sm line-clamp-2">{request.ad_text}</p>
                               </div>
                               <div className="text-right">
-                                <div className="font-bold">${request.price?.toFixed(2)}</div>
+                                <div className="font-bold">₪{request.price?.toFixed(2)}</div>
                                 <Button 
                                   variant="outline"
                                   size="sm"

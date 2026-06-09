@@ -465,7 +465,7 @@ export default function AdminUserDetail() {
                                 </div>
                               </div>
                               <div className="flex flex-col items-end">
-                                <div className="text-lg font-bold">${request.price?.toFixed(2)}</div>
+                                <div className="text-lg font-bold">₪{request.price?.toFixed(2)}</div>
                                 <Button 
                                   variant="outline"
                                   size="sm"

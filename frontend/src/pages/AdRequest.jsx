@@ -356,7 +356,7 @@ export default function AdRequestPage() {
             </div>
             
             <div className="text-right">
-              <div className="text-xl font-bold">${request.price?.toFixed(2)}</div>
+              <div className="text-xl font-bold">₪{request.price?.toFixed(2)}</div>
               <div className="text-sm text-gray-500">
                 {getTranslation(language, "adRequestPrice")}
               </div>
