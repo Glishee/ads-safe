@@ -1,7 +1,7 @@
 
 import "@/styles/rtl.css";
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { User } from "@/api/entities";
 import LanguageSwitcher from "@/components/ui/language-switcher";
@@ -42,6 +42,7 @@ import {
 
 function LayoutContent({ children, currentPageName }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language, toggleLanguage } = useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -307,7 +308,17 @@ function LayoutContent({ children, currentPageName }) {
 
               <nav className="p-4 space-y-1">
                 {getNavLinks().map((link) => {
-                  const isActive = currentPageName === link.path.split('?')[0];
+                  const [linkPage, linkQuery] = link.path.split('?');
+                  const isActive = (() => {
+                    if (currentPageName !== linkPage) return false;
+                    if (!linkQuery) return true;
+                    const current = new URLSearchParams(location.search);
+                    const required = new URLSearchParams(linkQuery);
+                    for (const [k, v] of required) {
+                      if (current.get(k) !== v) return false;
+                    }
+                    return true;
+                  })();
                   return (
                     <Link
                       key={link.path}
