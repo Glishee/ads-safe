@@ -10,7 +10,7 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit3, Plus, Trash2, Eye, MessageSquare, Loader2 } from "lucide-react"; // Added Loader2
+import { ArrowLeft, Edit3, Plus, Trash2, MessageSquare, Loader2, AlertCircle as RejectedIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -184,17 +184,25 @@ setChannels(userChannels);
                   <p className="text-xs text-gray-500 mt-2">
                     {getTranslation(language, "category")}: {getTranslation(language, channel.category)}
                   </p>
+                  {channel.is_rejected && channel.rejection_reason && (
+                    <div className="mt-3 rounded-lg bg-red-50 border border-red-200 p-3 flex gap-2">
+                      <RejectedIcon className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-semibold text-red-700 mb-0.5">
+                          {getTranslation(language, "rejectionReason")}:
+                        </p>
+                        <p className="text-xs text-red-600">{channel.rejection_reason}</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="border-t p-3 flex justify-end gap-2">
-                   {/* <Button variant="ghost" size="sm" onClick={() => navigate(createPageUrl(`ViewChannel?id=${channel.id}`))}>
-                     <Eye className="mr-1 h-4 w-4" /> {getTranslation(language, "view")}
-                   </Button> */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => navigate(createPageUrl(`EditChannel?id=${channel.id}`))}
-                    disabled={channel.is_approved || channel.is_rejected} // Disable if already approved or rejected
-                    title={ (channel.is_approved || channel.is_rejected) ? getTranslation(language, 'cannotEditApprovedRejected') : getTranslation(language, 'edit')}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(createPageUrl(`AddChannel?edit=${channel.id}`))}
+                    disabled={channel.is_approved}
+                    title={channel.is_approved ? getTranslation(language, 'cannotEditApprovedRejected') : getTranslation(language, 'edit')}
                   >
                     <Edit3 className="mr-1 h-4 w-4" /> {getTranslation(language, "edit")}
                   </Button>

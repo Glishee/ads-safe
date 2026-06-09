@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { User, TelegramChannel } from "@/api/entities";
 import { UploadFile } from "@/api/integrations";
@@ -29,6 +29,10 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "";
 export default function AddChannel() {
   const navigate = useNavigate();
   const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get("edit") || null;
+  const isEditMode = !!editId;
+
   const [pageLoading, setPageLoading] = useState(true);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -39,17 +43,17 @@ export default function AddChannel() {
   const fileInputRef = useRef(null);
 
   const [channelData, setChannelData] = useState({
-  name: "",
-  description: "",
-  telegram_link: "",
-  avatar_url: "",
-  subscribers_count: 0,
-  category: "tech",
-  post_price: "",
-  admin_username: "",
-  admin_contact_email: "",
-  terms_accepted: false
-});
+    name: "",
+    description: "",
+    telegram_link: "",
+    avatar_url: "",
+    subscribers_count: 0,
+    category: "tech",
+    post_price: "",
+    admin_username: "",
+    admin_contact_email: "",
+    terms_accepted: false,
+  });
 
   const [avatarPreview, setAvatarPreview] = useState(null);
 
@@ -69,16 +73,32 @@ export default function AddChannel() {
           return;
         }
 
-        if (userData.email) {
-          setChannelData(prev => ({
-            ...prev,
-            admin_contact_email: userData.email,
-            admin_username: userData.username || prev.admin_username
-          }));
+        if (isEditMode) {
+          const existing = await TelegramChannel.get(editId);
+          setChannelData({
+            name: existing.name || "",
+            description: existing.description || "",
+            telegram_link: existing.telegram_link || "",
+            avatar_url: existing.avatar_url || "",
+            subscribers_count: existing.subscribers_count || 0,
+            category: existing.category || "tech",
+            post_price: existing.post_price != null ? String(existing.post_price) : "",
+            admin_username: existing.admin_username || "",
+            admin_contact_email: existing.admin_contact_email || "",
+            terms_accepted: true,
+          });
+          if (existing.avatar_url) setAvatarPreview(existing.avatar_url);
+        } else {
+          if (userData.email) {
+            setChannelData(prev => ({
+              ...prev,
+              admin_contact_email: userData.email,
+              admin_username: userData.username || prev.admin_username,
+            }));
+          }
         }
-
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching data:", error);
         navigate(createPageUrl("Login"));
       } finally {
         setPageLoading(false);
@@ -86,21 +106,18 @@ export default function AddChannel() {
     };
 
     initializePage();
-  }, [navigate]);
+  }, [navigate, editId, isEditMode]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setChannelData(prev => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSelectChange = (name, value) => {
-    setChannelData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setChannelData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFetchChannelInfo = async () => {
@@ -145,7 +162,7 @@ export default function AddChannel() {
     const file = event.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       setError(getTranslation(language, "invalidFileType") + " (JPEG, PNG, GIF, WebP)");
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -171,7 +188,7 @@ export default function AddChannel() {
       }
     } catch (uploadError) {
       console.error("Error uploading avatar:", uploadError);
-      setError(getTranslation(language, "errorUploadingAvatar") + (uploadError.message ? `: ${uploadError.message}` : ''));
+      setError(getTranslation(language, "errorUploadingAvatar") + (uploadError.message ? `: ${uploadError.message}` : ""));
       setAvatarPreview(null);
       setChannelData(prev => ({ ...prev, avatar_url: "" }));
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -183,9 +200,7 @@ export default function AddChannel() {
   const clearAvatar = () => {
     setChannelData(prev => ({ ...prev, avatar_url: "" }));
     setAvatarPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = async (e) => {
@@ -195,11 +210,6 @@ export default function AddChannel() {
 
     if (!channelData.name || !channelData.telegram_link || !channelData.category || !channelData.post_price || !channelData.admin_username || !channelData.admin_contact_email) {
       setError(getTranslation(language, "allFieldsRequired"));
-      return;
-    }
-
-    if (!channelData.avatar_url && avatarPreview) {
-      setError(getTranslation(language, "errorAvatarUploadIncomplete"));
       return;
     }
 
@@ -217,32 +227,30 @@ export default function AddChannel() {
     setSubmitting(true);
 
     try {
-      const user = await User.me();
-      const newChannel = {
+      const payload = {
         name: channelData.name,
         description: channelData.description,
         telegram_link: channelData.telegram_link,
-        avatar_url: channelData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(channelData.name || 'C')}&background=0D8ABC&color=fff&size=128&font-size=0.5&bold=true`,
+        avatar_url: channelData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(channelData.name || "C")}&background=0D8ABC&color=fff&size=128&font-size=0.5&bold=true`,
         subscribers_count: parseInt(channelData.subscribers_count, 10) || 0,
         category: channelData.category,
         post_price: price,
         admin_username: channelData.admin_username,
         admin_contact_email: channelData.admin_contact_email,
-        owner_id: user.id,
-        is_approved: false,
-        is_rejected: false,
       };
 
-      await TelegramChannel.create(newChannel);
+      if (isEditMode) {
+        await TelegramChannel.update(editId, payload);
+      } else {
+        const user = await User.me();
+        await TelegramChannel.create({ ...payload, owner_id: user.id, is_approved: false, is_rejected: false });
+      }
+
       setSuccess(true);
-
-      setTimeout(() => {
-        navigate(createPageUrl("MyChannels"));
-      }, 2000);
-
+      setTimeout(() => navigate(createPageUrl("MyChannels")), 2000);
     } catch (submitError) {
       console.error("Error submitting channel:", submitError);
-      setError(getTranslation(language, "errorSubmittingChannel") + (submitError.message ? `: ${submitError.message}` : ''));
+      setError(getTranslation(language, "errorSubmittingChannel") + (submitError.message ? `: ${submitError.message}` : ""));
     } finally {
       setSubmitting(false);
     }
@@ -258,12 +266,11 @@ export default function AddChannel() {
 
   const categories = ["tech", "business", "entertainment", "news", "lifestyle", "education", "crypto", "gaming", "travel", "finance", "health", "sports", "other"];
 
-
   return (
     <div className="container mx-auto max-w-2xl py-8">
       <Button
         variant="outline"
-        onClick={() => navigate(createPageUrl("ChannelOwnerDashboard"))}
+        onClick={() => navigate(createPageUrl("MyChannels"))}
         className="mb-6 flex items-center gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -272,8 +279,12 @@ export default function AddChannel() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">{getTranslation(language, "addTelegramChannel")}</CardTitle>
-          <CardDescription>{getTranslation(language, "addChannelDescription")}</CardDescription>
+          <CardTitle className="text-2xl">
+            {getTranslation(language, isEditMode ? "editChannel" : "addTelegramChannel")}
+          </CardTitle>
+          <CardDescription>
+            {getTranslation(language, isEditMode ? "editChannelDescription" : "addChannelDescription")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {error && (
@@ -285,10 +296,12 @@ export default function AddChannel() {
           {success && (
             <Alert variant="default" className="mb-4 bg-green-50 border-green-200 text-green-700">
               <Check className="h-4 w-4" />
-              <AlertDescription>{getTranslation(language, "channelSubmittedSuccess")}</AlertDescription>
+              <AlertDescription>
+                {getTranslation(language, isEditMode ? "channelUpdatedSuccess" : "channelSubmittedSuccess")}
+              </AlertDescription>
             </Alert>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="telegram_link">{getTranslation(language, "telegramChannelLink")}</Label>
@@ -307,7 +320,7 @@ export default function AddChannel() {
               </div>
               <p className="text-xs text-gray-500">{getTranslation(language, "fetchInfoHint")}</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">{getTranslation(language, "channelName")}</Label>
@@ -318,7 +331,7 @@ export default function AddChannel() {
                 <Input id="subscribers_count" name="subscribers_count" type="number" value={channelData.subscribers_count} onChange={handleInputChange} />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">{getTranslation(language, "channelDescription")}</Label>
               <Textarea id="description" name="description" value={channelData.description} onChange={handleInputChange} rows={3} />
@@ -330,8 +343,8 @@ export default function AddChannel() {
               <div className="flex items-center gap-4">
                 {avatarPreview ? (
                   <div className="relative group">
-                    <img 
-                      src={avatarPreview} 
+                    <img
+                      src={avatarPreview}
                       alt={getTranslation(language, "channelAvatarPreview")}
                       className="w-24 h-24 object-cover rounded-lg border"
                     />
@@ -352,7 +365,7 @@ export default function AddChannel() {
                   </div>
                 )}
                 <div className="flex-grow">
-                   <Input
+                  <Input
                     id="avatar_upload"
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
@@ -362,12 +375,12 @@ export default function AddChannel() {
                     disabled={uploadingAvatar}
                   />
                   {uploadingAvatar && <Loader2 className="h-4 w-4 animate-spin mt-1" />}
-                   <p className="text-xs text-gray-500 mt-1">{getTranslation(language, "avatarUploadHint") + " (Max 5MB, JPG/PNG/GIF/WebP)"}</p>
+                  <p className="text-xs text-gray-500 mt-1">{getTranslation(language, "avatarUploadHint") + " (Max 5MB, JPG/PNG/GIF/WebP)"}</p>
                 </div>
               </div>
             </div>
-            
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="category">{getTranslation(language, "category")}</Label>
                 <Select name="category" value={channelData.category} onValueChange={(value) => handleSelectChange("category", value)}>
@@ -383,10 +396,10 @@ export default function AddChannel() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="post_price">{getTranslation(language, "pricePerPost")} ($)</Label>
-                <Input id="post_price" name="post_price" type="number" step="0.01" value={channelData.post_price} onChange={handleInputChange} required placeholder="e.g., 25.50"/>
+                <Input id="post_price" name="post_price" type="number" step="0.01" value={channelData.post_price} onChange={handleInputChange} required placeholder="e.g., 25.50" />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="admin_username">{getTranslation(language, "telegramAdminUsername")}</Label>
@@ -399,7 +412,12 @@ export default function AddChannel() {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="terms_accepted" name="terms_accepted" checked={channelData.terms_accepted} onCheckedChange={(checked) => handleInputChange({ target: { name: "terms_accepted", type: "checkbox", checked }})}/>
+              <Checkbox
+                id="terms_accepted"
+                name="terms_accepted"
+                checked={channelData.terms_accepted}
+                onCheckedChange={(checked) => handleInputChange({ target: { name: "terms_accepted", type: "checkbox", checked } })}
+              />
               <Label htmlFor="terms_accepted" className="text-sm font-normal">
                 {getTranslation(language, "iConfirmOwnershipAndAccuracy")}
               </Label>
@@ -413,7 +431,7 @@ export default function AddChannel() {
                     {getTranslation(language, "submitting")}
                   </>
                 ) : (
-                  getTranslation(language, "submitForReview")
+                  getTranslation(language, isEditMode ? "submitForReview" : "submitForReview")
                 )}
               </Button>
             </CardFooter>

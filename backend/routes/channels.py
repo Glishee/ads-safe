@@ -88,6 +88,16 @@ def update_channel(channel_id):
     data.pop('ownership_verified', None)
 
     try:
+        existing = channels_collection.find_one({'_id': ObjectId(channel_id)})
+        if not existing:
+            return jsonify({'message': 'Channel not found'}), 404
+
+        # If the channel was rejected, resubmit it for review on edit
+        if existing.get('is_rejected'):
+            data['is_rejected'] = False
+            data['is_approved'] = False
+            data['rejection_reason'] = ''
+
         result = channels_collection.update_one({'_id': ObjectId(channel_id)}, {'$set': data})
         if result.matched_count == 0:
             return jsonify({'message': 'Channel not found'}), 404
