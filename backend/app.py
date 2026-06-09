@@ -12,6 +12,7 @@ from routes.ad_requests import ad_request_bp
 from routes.llm import llm_bp
 from routes.telegram_api import telegram_bp
 from routes.verification import verification_bp
+from routes.telegram_bot import bot_bp
 
 app = Flask(__name__)
 secret_key = os.getenv("SECRET_KEY")
@@ -62,6 +63,32 @@ app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")
 app.register_blueprint(verification_bp, url_prefix="/api")
+app.register_blueprint(bot_bp, url_prefix="/api")
+
+
+def _setup_bot_webhook():
+    """Register the Telegram webhook on startup if env vars are set."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+    domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
+    if not bot_token or not domain:
+        return
+    webhook_url = f"https://{domain}/api/telegram/bot"
+    try:
+        import requests as _req
+        r = _req.post(
+            f"https://api.telegram.org/bot{bot_token}/setWebhook",
+            json={"url": webhook_url},
+            timeout=10,
+        ).json()
+        if r.get("ok"):
+            print(f"[Bot] Webhook set → {webhook_url}")
+        else:
+            print(f"[Bot] setWebhook failed: {r}")
+    except Exception as e:
+        print(f"[Bot] setWebhook error: {e}")
+
+
+_setup_bot_webhook()
 
 @app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
 def ping():

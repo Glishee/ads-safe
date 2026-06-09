@@ -20,7 +20,9 @@ import {
   Check,
   Loader2,
   UploadCloud,
-  X as ClearIcon
+  X as ClearIcon,
+  MessageCircle,
+  ExternalLink,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -35,6 +37,7 @@ export default function AddChannel() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [botUsername, setBotUsername] = useState(null);
   const fileInputRef = useRef(null);
 
   const [channelData, setChannelData] = useState({
@@ -75,6 +78,15 @@ export default function AddChannel() {
             admin_username: userData.username || prev.admin_username
           }));
         }
+
+        // Fetch bot username for the Telegram deep link (non-blocking)
+        try {
+          const botRes = await fetch(`${API_BASE}/api/bot-info`);
+          if (botRes.ok) {
+            const botData = await botRes.json();
+            setBotUsername(botData.bot_username);
+          }
+        } catch (_) {}
       } catch (error) {
         console.error("Error fetching user data:", error);
         navigate(createPageUrl("Login"));
@@ -257,17 +269,58 @@ export default function AddChannel() {
   const categories = ["tech", "business", "entertainment", "news", "lifestyle", "education", "crypto", "gaming", "travel", "finance", "health", "sports", "other"];
 
 
+  const botDeepLink = botUsername && currentUser?.id
+    ? `https://t.me/${botUsername}?start=${currentUser.id}`
+    : null;
+
   return (
     <div className="container mx-auto max-w-2xl py-8">
-      <Button 
-        variant="outline" 
-        onClick={() => navigate(createPageUrl("ChannelOwnerDashboard"))} 
+      <Button
+        variant="outline"
+        onClick={() => navigate(createPageUrl("ChannelOwnerDashboard"))}
         className="mb-6 flex items-center gap-2"
       >
         <ArrowLeft className="h-4 w-4" />
         {getTranslation(language, "backToDashboard")}
       </Button>
-      
+
+      {/* ── Telegram Bot option (recommended, works on all devices) ── */}
+      {botDeepLink && (
+        <div className="mb-6 p-5 bg-blue-50 border border-blue-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex-shrink-0 bg-blue-100 rounded-full p-3">
+            <MessageCircle className="h-6 w-6 text-blue-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-blue-900 text-sm">
+              {language === "en" ? "Add channel via Telegram Bot (recommended)" : "Добавить канал через Telegram-бота (рекомендуется)"}
+            </p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              {language === "en"
+                ? "Works on all devices. The bot will fetch your channel info automatically."
+                : "Работает на всех устройствах. Бот сам получит информацию о канале."}
+            </p>
+          </div>
+          <a
+            href={botDeepLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {language === "en" ? "Open Bot" : "Открыть бота"}
+          </a>
+        </div>
+      )}
+
+      {/* ── divider ── */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="flex-1 border-t border-gray-200" />
+        <span className="text-xs text-gray-400 font-medium">
+          {language === "en" ? "or fill the form below" : "или заполните форму ниже"}
+        </span>
+        <div className="flex-1 border-t border-gray-200" />
+      </div>
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl">{getTranslation(language, "addTelegramChannel")}</CardTitle>
