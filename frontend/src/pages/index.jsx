@@ -42,6 +42,8 @@ import MyOrders from "./MyOrders";
 
 import AdvertiserStats from "./AdvertiserStats";
 
+import AdminSettings from "./AdminSettings";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -87,6 +89,8 @@ const PAGES = {
     MyOrders: MyOrders,
 
     AdvertiserStats: AdvertiserStats,
+
+    AdminSettings: AdminSettings,
 
 }
 
@@ -155,6 +159,8 @@ function PagesContent() {
                 <Route path="/MyOrders" element={<MyOrders />} />
 
                 <Route path="/AdvertiserStats" element={<AdvertiserStats />} />
+
+                <Route path="/AdminSettings" element={<AdminSettings />} />
 
             </Routes>
         </Layout>

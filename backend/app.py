@@ -13,6 +13,7 @@ from routes.llm import llm_bp
 from routes.telegram_api import telegram_bp
 from routes.verification import verification_bp
 from routes.telegram_bot import bot_bp
+from routes.settings import settings_bp
 
 app = Flask(__name__)
 secret_key = os.getenv("SECRET_KEY")
@@ -64,6 +65,7 @@ app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")
 app.register_blueprint(verification_bp, url_prefix="/api")
 app.register_blueprint(bot_bp, url_prefix="/api")
+app.register_blueprint(settings_bp, url_prefix="/api")
 
 
 def _setup_bot_webhook():

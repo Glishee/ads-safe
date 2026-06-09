@@ -146,6 +146,11 @@ export const AdRequest = {
 };
 
 
+export const SystemSettings = {
+  get: () => apiGet("/admin/settings"),
+  update: (data) => apiPut("/admin/settings", data),
+};
+
 export const User = {
   login: async (credentials) => {
     const data = await api.post("/auth/login", credentials);
