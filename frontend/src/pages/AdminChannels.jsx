@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { User } from "@/api/entities";
 import { TelegramChannel } from "@/api/entities";
 import { getTranslation } from "@/components/translation/translations";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 import { createPageUrl } from "@/utils";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Check, X, Eye, ExternalLink, MessageSquare } from "lucide-react"; // Added MessageSquare
+import { AlertCircle, Check, X, ExternalLink, MessageSquare } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
@@ -25,24 +27,19 @@ import {
 
 export default function AdminChannels() {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState("en");
+  const { language } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status") || "pending";
+
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
-  const [filteredChannels, setFilteredChannels] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("pending"); // Default to pending
   const [error, setError] = useState("");
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'approve' or 'reject'
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [selectedPresets, setSelectedPresets] = useState([]);
+  const [rejectionNote, setRejectionNote] = useState("");
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get("status");
-    if (tabParam && ["pending", "approved", "rejected"].includes(tabParam)) {
-      setStatusFilter(tabParam);
-    }
-  }, []);
-  
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -53,10 +50,6 @@ export default function AdminChannels() {
           navigate(createPageUrl("Home"));
           return;
         }
-        if (userData.language_preference) {
-          setLanguage(userData.language_preference);
-        }
-        
         const allChannels = await TelegramChannel.getAll();
         setChannels(allChannels);
       } catch (err) {
@@ -67,42 +60,35 @@ export default function AdminChannels() {
       }
     };
     fetchData();
-  }, [navigate, language]);
+  }, [navigate]);
 
-  useEffect(() => {
-    let results = channels;
-    if (statusFilter !== "all") {
-      const isApproved = statusFilter === "approved";
-      const isRejected = statusFilter === "rejected";
-      if (statusFilter === "pending") {
-         results = results.filter(channel => !channel.is_approved && !channel.is_rejected); // Assuming a new 'is_rejected' field or logic
-      } else if (statusFilter === "approved"){
-         results = results.filter(channel => channel.is_approved);
-      } else if (statusFilter === "rejected") {
-         results = results.filter(channel => channel.is_rejected); // Assuming is_rejected field exists
-      }
-    }
-    setFilteredChannels(results);
-  }, [channels, statusFilter]);
+  const filteredChannels = (() => {
+    if (statusFilter === "all") return channels;
+    if (statusFilter === "approved") return channels.filter(c => c.is_approved);
+    if (statusFilter === "rejected") return channels.filter(c => c.is_rejected);
+    return channels.filter(c => !c.is_approved && !c.is_rejected); // pending
+  })();
 
   const openConfirmationDialog = (channel, action) => {
     setSelectedChannel(channel);
     setConfirmAction(action);
+    setSelectedPresets([]);
+    setRejectionNote("");
     setIsConfirmDialogOpen(true);
   };
 
   const handleChannelAction = async () => {
     if (!selectedChannel || !confirmAction) return;
-    setLoading(true); // Indicate processing
+    setLoading(true);
     setError("");
     try {
-      const updateData = { 
-        is_approved: confirmAction === "approve",
-        is_rejected: confirmAction === "reject" // Assuming you add an 'is_rejected' field
-      };
-      await TelegramChannel.update(selectedChannel.id, updateData);
-      
-      // Refresh channels list
+      if (confirmAction === "approve") {
+        await TelegramChannel.approve(selectedChannel.id);
+      } else {
+        const parts = [...selectedPresets];
+        if (rejectionNote.trim()) parts.push(rejectionNote.trim());
+        await TelegramChannel.reject(selectedChannel.id, parts.join(" | "));
+      }
       const updatedChannels = await TelegramChannel.getAll();
       setChannels(updatedChannels);
     } catch (err) {
@@ -113,6 +99,8 @@ export default function AdminChannels() {
       setIsConfirmDialogOpen(false);
       setSelectedChannel(null);
       setConfirmAction(null);
+      setSelectedPresets([]);
+      setRejectionNote("");
     }
   };
   
@@ -261,31 +249,130 @@ export default function AdminChannels() {
         </CardContent>
       </Card>
 
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+      {/* Approve dialog */}
+      <Dialog
+        open={isConfirmDialogOpen && confirmAction === "approve"}
+        onOpenChange={(open) => !open && setIsConfirmDialogOpen(false)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {getTranslation(language, `confirm${confirmAction?.charAt(0).toUpperCase() + confirmAction?.slice(1)}`)}
-            </DialogTitle>
+            <DialogTitle>{language === "en" ? "Approve channel" : "Подтвердить канал"}</DialogTitle>
             <DialogDescription>
-              {getTranslation(language, `areYouSure${confirmAction?.charAt(0).toUpperCase() + confirmAction?.slice(1)}Channel`)} 
-              <strong>{selectedChannel?.name}</strong>?
+              {language === "en" ? "Approve" : "Одобрить"} <strong>{selectedChannel?.name}</strong>?{" "}
+              {language === "en"
+                ? "It will become visible to advertisers."
+                : "Он станет виден рекламодателям."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
               {getTranslation(language, "cancel")}
             </Button>
-            <Button 
-              onClick={handleChannelAction} 
-              className={confirmAction === "approve" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-              disabled={loading}
-            >
-              {loading ? getTranslation(language, "processing") : getTranslation(language, confirmAction)}
+            <Button onClick={handleChannelAction} className="bg-green-600 hover:bg-green-700" disabled={loading}>
+              {loading ? getTranslation(language, "processing") : getTranslation(language, "approve")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reject dialog — with preset reasons + free text */}
+      {(() => {
+        const isHe = language === "he";
+        const presets = isHe
+          ? [
+              "הערוץ אינו עומד בדרישות התוכן שלנו",
+              "מספר מנויים לא מספיק",
+              "ערוץ לא פעיל (אין פרסומים אחרונים)",
+              "הערוץ מכיל תוכן אסור",
+              "קישור לערוץ לא חוקי או לא נגיש",
+            ]
+          : [
+              "Channel doesn't meet our content requirements",
+              "Insufficient subscriber count",
+              "Inactive channel (no recent posts)",
+              "Channel contains prohibited content",
+              "Invalid or inaccessible channel link",
+            ];
+        return (
+          <Dialog
+            open={isConfirmDialogOpen && confirmAction === "reject"}
+            onOpenChange={(open) => !open && setIsConfirmDialogOpen(false)}
+          >
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="text-red-600">
+                  {isHe ? "דחיית ערוץ" : "Reject channel"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isHe ? "דחיית" : "Rejecting"}{" "}
+                  <strong>{selectedChannel?.name}</strong>.{" "}
+                  {isHe
+                    ? "בחרו סיבה או כתבו משלכם — היא תוצג לבעל הערוץ."
+                    : "Choose a reason or write your own — it will be shown to the channel owner."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                {/* Preset reasons — toggle on/off independently */}
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((preset) => {
+                    const active = selectedPresets.includes(preset);
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() =>
+                          setSelectedPresets(prev =>
+                            active ? prev.filter(p => p !== preset) : [...prev, preset]
+                          )
+                        }
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isHe ? "text-right" : "text-left"} ${
+                          active
+                            ? "bg-red-50 border-red-400 text-red-700 font-medium"
+                            : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                        }`}
+                      >
+                        {active && <span className="mr-1">✓</span>}
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Additional note — independent of presets */}
+                <div>
+                  <p className={`text-xs text-gray-500 mb-1 ${isHe ? "text-right" : ""}`}>
+                    {isHe ? "הערה נוספת (אופציונלי)" : "Additional note (optional)"}
+                  </p>
+                  <Textarea
+                    placeholder={isHe ? "…הוסיפו פרטים נוספים" : "Add more details…"}
+                    value={rejectionNote}
+                    onChange={(e) => setRejectionNote(e.target.value)}
+                    rows={2}
+                    className={`text-sm resize-none ${isHe ? "text-right" : ""}`}
+                    dir={isHe ? "rtl" : "ltr"}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
+                  {getTranslation(language, "cancel")}
+                </Button>
+                <Button
+                  onClick={handleChannelAction}
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={loading}
+                >
+                  {loading
+                    ? getTranslation(language, "processing")
+                    : isHe ? "דחה" : "Reject"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }
