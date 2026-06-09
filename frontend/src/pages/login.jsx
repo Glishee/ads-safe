@@ -12,12 +12,12 @@ export default function Login() {
   useEffect(() => {
   const checkIfLoggedIn = async () => {
     try {
-      const user = await User.me(); // вызывает /auth/profile
+      const user = await User.me();
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
-      } else if (user.role === "channel_owner") {
+      } else if (user.application_role === "channel_owner") {
         navigate(createPageUrl("ChannelOwnerDashboard"));
-      } else if (user.role === "advertiser") {
+      } else if (user.application_role === "advertiser") {
         navigate(createPageUrl("AdvertiserDashboard"));
       }
     } catch (err) {

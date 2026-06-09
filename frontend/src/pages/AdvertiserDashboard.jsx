@@ -55,6 +55,16 @@ export default function AdvertiserDashboard() {
     setFetchError("");
     try {
       const userData = await User.me();
+
+      if (userData.role !== "admin" && userData.application_role !== "advertiser") {
+        if (userData.application_role === "channel_owner") {
+          navigate(createPageUrl("ChannelOwnerDashboard"));
+        } else {
+          navigate(createPageUrl("Home"));
+        }
+        return;
+      }
+
       setUser(userData);
 
       if (!userData?.id) {
