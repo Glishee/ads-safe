@@ -120,7 +120,7 @@ export const TelegramChannel = {
   update: (id, data) => api.put(`/channels/${id}`, data),
   delete: (id) => api.delete(`/channels/${id}`),
   approve: (id) => api.post(`/channels/${id}/approve`, {}),
-  reject: (id) => api.post(`/channels/${id}/reject`, {}),
+  reject: (id, reason = "") => api.post(`/channels/${id}/reject`, { reason }),
   filter: (params) =>
     publicGet(`/channels?${new URLSearchParams(params).toString()}`),
 };

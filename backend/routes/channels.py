@@ -127,9 +127,11 @@ def approve_channel(channel_id):
 @require_admin
 def reject_channel(channel_id):
     try:
+        data = request.get_json(silent=True) or {}
+        reason = (data.get('reason') or '').strip()
         result = channels_collection.update_one(
             {'_id': ObjectId(channel_id)},
-            {'$set': {'is_approved': False, 'is_rejected': True}}
+            {'$set': {'is_approved': False, 'is_rejected': True, 'rejection_reason': reason}}
         )
         if result.matched_count == 0:
             return jsonify({'message': 'Channel not found'}), 404

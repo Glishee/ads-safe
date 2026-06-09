@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, Check, X, Eye, ExternalLink, MessageSquare } from "lucide-react"; // Added MessageSquare
+import { AlertCircle, Check, X, ExternalLink, MessageSquare } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
@@ -35,6 +36,7 @@ export default function AdminChannels() {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   
   useEffect(() => {
     const fetchData = async () => {
@@ -72,21 +74,20 @@ export default function AdminChannels() {
   const openConfirmationDialog = (channel, action) => {
     setSelectedChannel(channel);
     setConfirmAction(action);
+    setRejectionReason("");
     setIsConfirmDialogOpen(true);
   };
 
   const handleChannelAction = async () => {
     if (!selectedChannel || !confirmAction) return;
-    setLoading(true); // Indicate processing
+    setLoading(true);
     setError("");
     try {
-      const updateData = { 
-        is_approved: confirmAction === "approve",
-        is_rejected: confirmAction === "reject" // Assuming you add an 'is_rejected' field
-      };
-      await TelegramChannel.update(selectedChannel.id, updateData);
-      
-      // Refresh channels list
+      if (confirmAction === "approve") {
+        await TelegramChannel.approve(selectedChannel.id);
+      } else {
+        await TelegramChannel.reject(selectedChannel.id, rejectionReason.trim());
+      }
       const updatedChannels = await TelegramChannel.getAll();
       setChannels(updatedChannels);
     } catch (err) {
@@ -97,6 +98,7 @@ export default function AdminChannels() {
       setIsConfirmDialogOpen(false);
       setSelectedChannel(null);
       setConfirmAction(null);
+      setRejectionReason("");
     }
   };
   
@@ -245,31 +247,115 @@ export default function AdminChannels() {
         </CardContent>
       </Card>
 
-      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+      {/* Approve dialog */}
+      <Dialog
+        open={isConfirmDialogOpen && confirmAction === "approve"}
+        onOpenChange={(open) => !open && setIsConfirmDialogOpen(false)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {getTranslation(language, `confirm${confirmAction?.charAt(0).toUpperCase() + confirmAction?.slice(1)}`)}
-            </DialogTitle>
+            <DialogTitle>{language === "en" ? "Approve channel" : "Подтвердить канал"}</DialogTitle>
             <DialogDescription>
-              {getTranslation(language, `areYouSure${confirmAction?.charAt(0).toUpperCase() + confirmAction?.slice(1)}Channel`)} 
-              <strong>{selectedChannel?.name}</strong>?
+              {language === "en" ? "Approve" : "Одобрить"} <strong>{selectedChannel?.name}</strong>?{" "}
+              {language === "en"
+                ? "It will become visible to advertisers."
+                : "Он станет виден рекламодателям."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
               {getTranslation(language, "cancel")}
             </Button>
-            <Button 
-              onClick={handleChannelAction} 
-              className={confirmAction === "approve" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-              disabled={loading}
-            >
-              {loading ? getTranslation(language, "processing") : getTranslation(language, confirmAction)}
+            <Button onClick={handleChannelAction} className="bg-green-600 hover:bg-green-700" disabled={loading}>
+              {loading ? getTranslation(language, "processing") : getTranslation(language, "approve")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Reject dialog — with preset reasons + free text */}
+      {(() => {
+        const presets = language === "en"
+          ? [
+              "Channel doesn't meet our content requirements",
+              "Insufficient subscriber count",
+              "Inactive channel (no recent posts)",
+              "Channel contains prohibited content",
+              "Invalid or inaccessible channel link",
+            ]
+          : [
+              "Канал не соответствует требованиям к контенту",
+              "Недостаточное количество подписчиков",
+              "Неактивный канал (нет недавних публикаций)",
+              "Канал содержит запрещённый контент",
+              "Недействительная или недоступная ссылка на канал",
+            ];
+        return (
+          <Dialog
+            open={isConfirmDialogOpen && confirmAction === "reject"}
+            onOpenChange={(open) => !open && setIsConfirmDialogOpen(false)}
+          >
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="text-red-600">
+                  {language === "en" ? "Reject channel" : "Отклонить канал"}
+                </DialogTitle>
+                <DialogDescription>
+                  {language === "en" ? "Rejecting" : "Отклонение"}{" "}
+                  <strong>{selectedChannel?.name}</strong>.{" "}
+                  {language === "en"
+                    ? "Choose a reason or write your own — it will be shown to the channel owner."
+                    : "Выберите причину или напишите свою — она будет показана владельцу канала."}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-2">
+                {/* Preset reasons */}
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setRejectionReason(preset)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors text-left ${
+                        rejectionReason === preset
+                          ? "bg-red-50 border-red-400 text-red-700 font-medium"
+                          : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Free text */}
+                <Textarea
+                  placeholder={language === "en" ? "Or write a custom reason…" : "Или напишите свою причину…"}
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={3}
+                  className="text-sm resize-none"
+                />
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
+                  {getTranslation(language, "cancel")}
+                </Button>
+                <Button
+                  onClick={handleChannelAction}
+                  className="bg-red-600 hover:bg-red-700"
+                  disabled={loading}
+                >
+                  {loading
+                    ? getTranslation(language, "processing")
+                    : language === "en" ? "Reject" : "Отклонить"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }
