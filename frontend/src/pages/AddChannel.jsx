@@ -102,38 +102,42 @@ export default function AddChannel() {
   };
 
   const handleFetchChannelInfo = async () => {
-  setFetchLoading(true);
-  setError("");
+    setFetchLoading(true);
+    setError("");
 
-  try {
-    const res = await fetch(`${API_BASE}/api/get_channel_info`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ link: channelData.telegram_link }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || "Error fetching Telegram channel data.");
-      return;
+    const retryDelays = [0, 3000, 5000, 8000];
+    let lastErr;
+    for (const delay of retryDelays) {
+      if (delay > 0) await new Promise(r => setTimeout(r, delay));
+      try {
+        const res = await fetch(`${API_BASE}/api/get_channel_info`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ link: channelData.telegram_link }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Error fetching Telegram channel data.");
+          setFetchLoading(false);
+          return;
+        }
+        setChannelData(prev => ({
+          ...prev,
+          name: data.name,
+          description: data.description,
+          subscribers_count: data.subscribers_count,
+          avatar_url: data.avatar_url || prev.avatar_url,
+        }));
+        setFetchLoading(false);
+        return;
+      } catch (err) {
+        lastErr = err;
+      }
     }
-
-    setChannelData(prev => ({
-      ...prev,
-      name: data.name,
-      description: data.description,
-      subscribers_count: data.subscribers_count,
-      avatar_url: data.avatar_url || prev.avatar_url,
-    }));
-  } catch (err) {
-    console.error("Network error:", err);
-    setError("Network error: " + err.message);
-  } finally {
+    console.error("Network error:", lastErr);
+    setError("Network error: " + (lastErr?.message || "Load failed"));
     setFetchLoading(false);
-  }
-};
+  };
 
   const handleAvatarUpload = async (event) => {
     const file = event.target.files[0];
