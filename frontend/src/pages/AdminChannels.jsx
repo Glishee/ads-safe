@@ -37,7 +37,8 @@ export default function AdminChannels() {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
-  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedPresets, setSelectedPresets] = useState([]);
+  const [rejectionNote, setRejectionNote] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +72,8 @@ export default function AdminChannels() {
   const openConfirmationDialog = (channel, action) => {
     setSelectedChannel(channel);
     setConfirmAction(action);
-    setRejectionReason("");
+    setSelectedPresets([]);
+    setRejectionNote("");
     setIsConfirmDialogOpen(true);
   };
 
@@ -83,7 +85,9 @@ export default function AdminChannels() {
       if (confirmAction === "approve") {
         await TelegramChannel.approve(selectedChannel.id);
       } else {
-        await TelegramChannel.reject(selectedChannel.id, rejectionReason.trim());
+        const parts = [...selectedPresets];
+        if (rejectionNote.trim()) parts.push(rejectionNote.trim());
+        await TelegramChannel.reject(selectedChannel.id, parts.join(" | "));
       }
       const updatedChannels = await TelegramChannel.getAll();
       setChannels(updatedChannels);
@@ -95,7 +99,8 @@ export default function AdminChannels() {
       setIsConfirmDialogOpen(false);
       setSelectedChannel(null);
       setConfirmAction(null);
-      setRejectionReason("");
+      setSelectedPresets([]);
+      setRejectionNote("");
     }
   };
   
@@ -308,31 +313,46 @@ export default function AdminChannels() {
               </DialogHeader>
 
               <div className="space-y-4 py-2">
+                {/* Preset reasons — toggle on/off independently */}
                 <div className="flex flex-wrap gap-2">
-                  {presets.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setRejectionReason(preset)}
-                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isHe ? "text-right" : "text-left"} ${
-                        rejectionReason === preset
-                          ? "bg-red-50 border-red-400 text-red-700 font-medium"
-                          : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
+                  {presets.map((preset) => {
+                    const active = selectedPresets.includes(preset);
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() =>
+                          setSelectedPresets(prev =>
+                            active ? prev.filter(p => p !== preset) : [...prev, preset]
+                          )
+                        }
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${isHe ? "text-right" : "text-left"} ${
+                          active
+                            ? "bg-red-50 border-red-400 text-red-700 font-medium"
+                            : "border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                        }`}
+                      >
+                        {active && <span className="mr-1">✓</span>}
+                        {preset}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <Textarea
-                  placeholder={isHe ? "…או כתבו סיבה משלכם" : "Or write a custom reason…"}
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  rows={3}
-                  className={`text-sm resize-none ${isHe ? "text-right" : ""}`}
-                  dir={isHe ? "rtl" : "ltr"}
-                />
+                {/* Additional note — independent of presets */}
+                <div>
+                  <p className={`text-xs text-gray-500 mb-1 ${isHe ? "text-right" : ""}`}>
+                    {isHe ? "הערה נוספת (אופציונלי)" : "Additional note (optional)"}
+                  </p>
+                  <Textarea
+                    placeholder={isHe ? "…הוסיפו פרטים נוספים" : "Add more details…"}
+                    value={rejectionNote}
+                    onChange={(e) => setRejectionNote(e.target.value)}
+                    rows={2}
+                    className={`text-sm resize-none ${isHe ? "text-right" : ""}`}
+                    dir={isHe ? "rtl" : "ltr"}
+                  />
+                </div>
               </div>
 
               <DialogFooter>
