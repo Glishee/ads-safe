@@ -38,6 +38,10 @@ import AccountSettings from "./AccountSettings";
 
 import VerifyEmail from "./VerifyEmail";
 
+import MyOrders from "./MyOrders";
+
+import AdvertiserStats from "./AdvertiserStats";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -79,6 +83,10 @@ const PAGES = {
     AccountSettings: AccountSettings,
 
     VerifyEmail: VerifyEmail,
+
+    MyOrders: MyOrders,
+
+    AdvertiserStats: AdvertiserStats,
 
 }
 
@@ -143,6 +151,10 @@ function PagesContent() {
                 <Route path="/AccountSettings" element={<AccountSettings />} />
 
                 <Route path="/VerifyEmail" element={<VerifyEmail />} />
+
+                <Route path="/MyOrders" element={<MyOrders />} />
+
+                <Route path="/AdvertiserStats" element={<AdvertiserStats />} />
 
             </Routes>
         </Layout>
