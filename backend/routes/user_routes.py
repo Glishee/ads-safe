@@ -164,14 +164,20 @@ def resend_verification():
 @limiter.limit("10 per minute")
 def login():
     import re as _re
-    data     = request.get_json()
-    email    = (data.get('email') or '').strip().lower()
-    password = data.get('password')
+    data       = request.get_json()
+    identifier = (data.get('identifier') or data.get('email') or '').strip()
+    password   = data.get('password')
 
-    if not email or not password:
-        return jsonify({'message': 'Missing email or password'}), 400
+    if not identifier or not password:
+        return jsonify({'message': 'Missing email/username or password'}), 400
 
-    user = users_collection.find_one({'email': {'$regex': f'^{_re.escape(email)}$', '$options': 'i'}})
+    identifier_lower = identifier.lower()
+    user = users_collection.find_one({
+        '$or': [
+            {'email':    {'$regex': f'^{_re.escape(identifier_lower)}$', '$options': 'i'}},
+            {'username': {'$regex': f'^{_re.escape(identifier)}$',       '$options': 'i'}},
+        ]
+    })
     if not user or not check_password_hash(user['password'], password):
         return jsonify({'message': 'Invalid credentials'}), 401
 

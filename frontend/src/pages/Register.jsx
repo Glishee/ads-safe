@@ -1,13 +1,14 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { User } from "@/api/entities";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import RegisterForm from "@/components/auth/register-form";
+import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function Register() {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState("en");
+  const { language } = useLanguage();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -19,10 +20,6 @@ export default function Register() {
           navigate(createPageUrl("ChannelOwnerDashboard"));
         } else {
           navigate(createPageUrl("AdvertiserDashboard"));
-        }
-
-        if (user.language_preference) {
-          setLanguage(user.language_preference);
         }
       } catch (error) {
         // User is not logged in, show registration form

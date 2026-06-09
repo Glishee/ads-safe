@@ -7,20 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Translate from "@/components/translation/translate";
-import { AlertCircle, Mail, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Mail, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getTranslation } from "@/components/translation/translations";
 
 export default function LoginForm({ language }) {
   const navigate = useNavigate();
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword]     = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading]   = useState(false);
   const [error, setError]           = useState("");
   const [emailNotVerified, setEmailNotVerified] = useState(false);
 
   // Resend flow
-  const [resendEmail, setResendEmail]   = useState("");
+  const [resendEmail, setResendEmail]     = useState("");
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [showResendForm, setShowResendForm] = useState(false);
@@ -32,7 +33,7 @@ export default function LoginForm({ language }) {
     setEmailNotVerified(false);
 
     try {
-      const user = await User.login({ email: email.trim(), password });
+      const user = await User.login({ identifier: identifier.trim(), password });
       if (user.role === "admin") {
         navigate(createPageUrl("AdminDashboard"));
       } else if (user.application_role === "channel_owner") {
@@ -45,7 +46,7 @@ export default function LoginForm({ language }) {
       try { body = JSON.parse(err.message); } catch (_) {}
       if (body.email_not_verified) {
         setEmailNotVerified(true);
-        setResendEmail(email);
+        setResendEmail(identifier.includes("@") ? identifier : "");
       } else {
         setError(err.message || "Login failed. Please try again.");
       }
@@ -127,15 +128,15 @@ export default function LoginForm({ language }) {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">
-            <Translate language={language} textKey="email" />
+          <Label htmlFor="identifier">
+            {getTranslation(language, "emailOrUsername")}
           </Label>
           <Input
-            id="email"
-            type="email"
+            id="identifier"
+            type="text"
             placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
             className="w-full"
             autoCapitalize="none"
@@ -147,18 +148,28 @@ export default function LoginForm({ language }) {
           <Label htmlFor="password">
             <Translate language={language} textKey="password" />
           </Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck="false"
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full pr-10"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
         <Button
           type="submit"
