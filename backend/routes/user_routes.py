@@ -184,6 +184,9 @@ def login():
     if not user.get('is_email_verified', True):
         return jsonify({'message': 'Please verify your email before logging in', 'email_not_verified': True}), 403
 
+    if user.get('is_blocked'):
+        return jsonify({'message': 'Your account has been blocked. Please contact support.', 'is_blocked': True}), 403
+
     user_id = str(user['_id'])
     session['user_id'] = user_id
 
@@ -309,12 +312,55 @@ def list_users():
     result = []
     for u in all_users:
         result.append({
-            'id':               str(u['_id']),
-            'username':         u.get('username'),
-            'email':            u.get('email'),
-            'role':             u.get('role', 'user'),
-            'application_role': u.get('application_role'),
-            'is_blocked':       u.get('is_blocked', False),
+            'id':                str(u['_id']),
+            'username':          u.get('username'),
+            'email':             u.get('email'),
+            'role':              u.get('role', 'user'),
+            'application_role':  u.get('application_role'),
+            'is_blocked':        u.get('is_blocked', False),
             'is_email_verified': u.get('is_email_verified', True),
+            'created_date':      str(u['_id'].generation_time.isoformat()) if '_id' in u else None,
+            'last_login':        u.get('last_login'),
+            'phone':             u.get('phone'),
+            'profile_image':     u.get('profile_image'),
         })
     return jsonify(result), 200
+
+
+@user_bp.route('/users/<user_id>', methods=['PUT'])
+def update_user(user_id):
+    requester_id = get_user_id()
+    if not requester_id:
+        return jsonify({'message': 'Not logged in'}), 401
+
+    current_user = users_collection.find_one({'_id': ObjectId(requester_id)})
+    if not current_user or current_user.get('role') != 'admin':
+        return jsonify({'message': 'Forbidden'}), 403
+
+    try:
+        target = users_collection.find_one({'_id': ObjectId(user_id)})
+    except Exception:
+        return jsonify({'message': 'Invalid user ID'}), 400
+
+    if not target:
+        return jsonify({'message': 'User not found'}), 404
+
+    if target.get('role') == 'admin':
+        return jsonify({'message': 'Cannot modify admin users'}), 403
+
+    data = request.get_json() or {}
+    allowed = {'is_blocked'}
+    updates = {k: v for k, v in data.items() if k in allowed}
+    if not updates:
+        return jsonify({'message': 'No valid fields to update'}), 400
+
+    users_collection.update_one({'_id': ObjectId(user_id)}, {'$set': updates})
+    updated = users_collection.find_one({'_id': ObjectId(user_id)})
+    return jsonify({
+        'id':               str(updated['_id']),
+        'username':         updated.get('username'),
+        'email':            updated.get('email'),
+        'role':             updated.get('role', 'user'),
+        'application_role': updated.get('application_role'),
+        'is_blocked':       updated.get('is_blocked', False),
+    }), 200

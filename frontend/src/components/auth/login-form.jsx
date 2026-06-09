@@ -42,11 +42,11 @@ export default function LoginForm({ language }) {
         navigate(createPageUrl("AdvertiserDashboard"));
       }
     } catch (err) {
-      let body = {};
-      try { body = JSON.parse(err.message); } catch (_) {}
-      if (body.email_not_verified) {
+      if (err.email_not_verified) {
         setEmailNotVerified(true);
         setResendEmail(identifier.includes("@") ? identifier : "");
+      } else if (err.is_blocked) {
+        setError(getTranslation(language, "accountBlockedMessage"));
       } else {
         setError(err.message || "Login failed. Please try again.");
       }

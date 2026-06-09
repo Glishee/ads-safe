@@ -83,7 +83,7 @@ export default function AdminUserDetail() {
         }
         
         // If user is channel owner, fetch their channels
-        if (userData.role === "channel_owner") {
+        if (userData.application_role === "channel_owner") {
           try {
             const allChannels = await TelegramChannel.list("-created_date");
             const userChannels = allChannels.filter(ch => ch.owner_id === userId);
@@ -218,10 +218,10 @@ export default function AdminUserDetail() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-6">
               <TabsTrigger value="details">{getTranslation(language, "details")}</TabsTrigger>
-              {user.role === "channel_owner" && (
+              {user.application_role === "channel_owner" && (
                 <TabsTrigger value="channels">{getTranslation(language, "channels")}</TabsTrigger>
               )}
-              {(user.role === "advertiser" || user.role === "channel_owner") && (
+              {(user.application_role === "advertiser" || user.application_role === "channel_owner") && (
                 <TabsTrigger value="adRequests">{getTranslation(language, "adRequests")}</TabsTrigger>
               )}
             </TabsList>
@@ -342,7 +342,7 @@ export default function AdminUserDetail() {
               </Card>
             </TabsContent>
             
-            {user.role === "channel_owner" && (
+            {user.application_role === "channel_owner" && (
               <TabsContent value="channels">
                 <Card>
                   <CardHeader>
@@ -497,13 +497,13 @@ export default function AdminUserDetail() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-blue-50 rounded-md p-3 text-center">
                   <div className="text-lg font-bold text-blue-700">
-                    {user.role === "advertiser" ? adRequests.length : (user.role === "channel_owner" ? channels.length : 0)}
+                    {user.application_role === "advertiser" ? adRequests.length : (user.application_role === "channel_owner" ? channels.length : 0)}
                   </div>
                   <div className="text-xs text-blue-600">
-                    {user.role === "advertiser" 
-                      ? getTranslation(language, "adRequests") 
-                      : (user.role === "channel_owner" 
-                          ? getTranslation(language, "channels") 
+                    {user.application_role === "advertiser"
+                      ? getTranslation(language, "adRequests")
+                      : (user.application_role === "channel_owner"
+                          ? getTranslation(language, "channels")
                           : getTranslation(language, "actions")
                         )
                     }
@@ -517,10 +517,10 @@ export default function AdminUserDetail() {
                     {getTranslation(language, "completedRequests")}
                   </div>
                 </div>
-                {user.role === "advertiser" && (
+                {user.application_role === "advertiser" && (
                   <div className="bg-purple-50 rounded-md p-3 text-center col-span-2">
                     <div className="text-lg font-bold text-purple-700">
-                      ${adRequests
+                      ₪{adRequests
                         .filter(req => req.status === "completed")
                         .reduce((total, req) => total + (req.price || 0), 0)
                         .toFixed(2)}
@@ -530,10 +530,10 @@ export default function AdminUserDetail() {
                     </div>
                   </div>
                 )}
-                {user.role === "channel_owner" && (
+                {user.application_role === "channel_owner" && (
                   <div className="bg-purple-50 rounded-md p-3 text-center col-span-2">
                     <div className="text-lg font-bold text-purple-700">
-                      ${adRequests
+                      ₪{adRequests
                         .filter(req => req.status === "completed")
                         .reduce((total, req) => total + (req.price || 0), 0)
                         .toFixed(2)}

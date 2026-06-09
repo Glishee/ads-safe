@@ -63,11 +63,11 @@ export async function apiPost(endpoint, data, isFormData = false) {
     if (response.status === 401) clearAuth();
     const text = await response.text();
     let message = text;
-    if (response.status === 401) {
-      try { message = JSON.parse(text).message || "Unauthorized"; } catch (_) { message = "Unauthorized"; }
-    }
+    let parsedBody = {};
+    try { parsedBody = JSON.parse(text); message = parsedBody.message || text; } catch (_) {}
     const err = new Error(message);
     err.status = response.status;
+    Object.assign(err, parsedBody);
     throw err;
   }
   return await response.json();
@@ -186,6 +186,7 @@ export const User = {
     localStorage.setItem("user", JSON.stringify(updated));
     return updated;
   },
+  update: (id, data) => api.put(`/auth/users/${id}`, data),
   verifyEmail: (token) => api.get(`/auth/verify-email?token=${encodeURIComponent(token)}`),
   resendVerification: (email) => api.post("/auth/resend-verification", { email }),
 };
