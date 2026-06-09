@@ -88,7 +88,7 @@ def register():
         data = request.get_json()
         username         = data.get('username')
         password         = data.get('password')
-        email            = data.get('email')
+        email            = (data.get('email') or '').strip().lower()
         application_role = data.get('application_role')
 
         if not username or not password or not email or not application_role:
@@ -163,14 +163,15 @@ def resend_verification():
 @user_bp.route('/login', methods=['POST'])
 @limiter.limit("10 per minute")
 def login():
+    import re as _re
     data     = request.get_json()
-    email    = data.get('email')
+    email    = (data.get('email') or '').strip().lower()
     password = data.get('password')
 
     if not email or not password:
         return jsonify({'message': 'Missing email or password'}), 400
 
-    user = users_collection.find_one({'email': email})
+    user = users_collection.find_one({'email': {'$regex': f'^{_re.escape(email)}$', '$options': 'i'}})
     if not user or not check_password_hash(user['password'], password):
         return jsonify({'message': 'Invalid credentials'}), 401
 
