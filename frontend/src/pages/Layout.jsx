@@ -210,8 +210,9 @@ function LayoutContent({ children, currentPageName }) {
         {isPublicPage && (
           <header className="bg-white shadow-sm py-3">
             <div className="container mx-auto px-4 flex justify-between items-center">
-              <Link to={createPageUrl("Home")} className="text-lg sm:text-xl font-bold shrink-0">
-                TeleAds
+              <Link to={createPageUrl("Home")} className="flex items-center gap-2 shrink-0">
+                <img src="/logo.png" alt="TeleAds" className="h-8 w-8 object-contain" />
+                <span className="text-lg sm:text-xl font-bold">TeleAds</span>
               </Link>
               <div className="flex items-center gap-2 sm:gap-3">
                 <Button
@@ -277,7 +278,10 @@ function LayoutContent({ children, currentPageName }) {
               }
             `}>
               <div className="flex items-center justify-between p-4 border-b">
-                <h1 className="text-xl font-bold">TeleAds</h1>
+                <div className="flex items-center gap-2">
+                  <img src="/logo.png" alt="TeleAds" className="h-8 w-8 object-contain" />
+                  <h1 className="text-xl font-bold">TeleAds</h1>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
