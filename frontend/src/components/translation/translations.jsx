@@ -766,7 +766,6 @@ export const translations = {
     ownerNotesHelp: "הערות אלו יהיו גלויות למפרסם",
     advertiserInfo: "מידע על המפרסם",
     username: "שם משתמש",
-    email: "אימייל",
     submitted: "הוגש",
     rejectRequest: "דחה בקשה",
     approveRequest: "אשר בקשה",

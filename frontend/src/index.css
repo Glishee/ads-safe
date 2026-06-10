@@ -156,3 +156,95 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Custom animations ───────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-24px) scale(1.04); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  33%       { transform: translateY(-18px) translateX(10px); }
+  66%       { transform: translateY(10px) translateX(-8px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(1.12); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes bounce-icon {
+  0%, 100% { transform: translateY(0); }
+  40%       { transform: translateY(-6px); }
+  60%       { transform: translateY(-3px); }
+}
+
+.animate-float        { animation: float       6s ease-in-out infinite; }
+.animate-float-slow   { animation: float-slow  9s ease-in-out infinite; }
+.animate-pulse-glow   { animation: pulse-glow  4s ease-in-out infinite; }
+.animate-shimmer      { animation: shimmer     2.5s linear infinite; background-size: 200% auto; }
+.animate-fade-up      { animation: fade-up     0.6s ease-out both; }
+.animate-fade-in      { animation: fade-in     0.5s ease-out both; }
+.animate-scale-in     { animation: scale-in    0.5s ease-out both; }
+.animate-slide-left   { animation: slide-left  0.6s ease-out both; }
+.animate-slide-right  { animation: slide-right 0.6s ease-out both; }
+.animate-rotate-slow  { animation: rotate-slow 18s linear infinite; }
+.animate-bounce-icon  { animation: bounce-icon 0.6s ease-in-out; }
+
+.delay-100  { animation-delay: 100ms; }
+.delay-150  { animation-delay: 150ms; }
+.delay-200  { animation-delay: 200ms; }
+.delay-300  { animation-delay: 300ms; }
+.delay-400  { animation-delay: 400ms; }
+.delay-500  { animation-delay: 500ms; }
+.delay-600  { animation-delay: 600ms; }
+.delay-700  { animation-delay: 700ms; }
+.delay-800  { animation-delay: 800ms; }
+.delay-900  { animation-delay: 900ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* elements hidden until revealed by JS */
+.reveal        { opacity: 0; }
+.reveal.visible { animation: fade-up 0.65s ease-out both; opacity: 1; }
+
+.shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #93c5fd 0%,
+    #e0f2fe 40%,
+    #818cf8 60%,
+    #93c5fd 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
