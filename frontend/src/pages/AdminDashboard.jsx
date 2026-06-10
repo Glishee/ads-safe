@@ -1,837 +1,570 @@
-
 import React, { useState, useEffect } from "react";
-import { User } from "@/api/entities";
-import { TelegramChannel } from "@/api/entities";
-import { AdRequest } from "@/api/entities";
+import { User, TelegramChannel, AdRequest } from "@/api/entities";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Users,
-  MessageSquare,
-  Clock,
-  ArrowRight,
-  CheckCircle,
-  Home,
-  ExternalLink,
-  Eye,
-  X,
-  Check,
-  AlertCircle
+import {
+  Users, MessageSquare, Clock, ArrowRight, CheckCircle, Home,
+  ExternalLink, Eye, X, Check, AlertCircle, ShieldAlert, Settings,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import DashboardHeader from "@/components/dashboard/dashboard-header";
 import StatCard from "@/components/dashboard/stat-card";
 
+/* ── shared helpers ── */
+
+const STATUS_STYLES = {
+  pending:              { bg:"bg-amber-50",  text:"text-amber-700",  border:"border-amber-200",  dot:"bg-amber-400"  },
+  pending_admin_review: { bg:"bg-orange-50", text:"text-orange-700", border:"border-orange-200", dot:"bg-orange-400" },
+  admin_approved:       { bg:"bg-blue-50",   text:"text-blue-700",   border:"border-blue-200",   dot:"bg-blue-400"   },
+  owner_approved:       { bg:"bg-sky-50",    text:"text-sky-700",    border:"border-sky-200",    dot:"bg-sky-400"    },
+  approved:             { bg:"bg-emerald-50",text:"text-emerald-700",border:"border-emerald-200",dot:"bg-emerald-400"},
+  rejected:             { bg:"bg-red-50",    text:"text-red-700",    border:"border-red-200",    dot:"bg-red-400"    },
+  completed:            { bg:"bg-purple-50", text:"text-purple-700", border:"border-purple-200", dot:"bg-purple-400" },
+  canceled:             { bg:"bg-gray-50",   text:"text-gray-600",   border:"border-gray-200",   dot:"bg-gray-400"   },
+};
+
+function StatusBadge({ status, language }) {
+  const s = STATUS_STYLES[status] || STATUS_STYLES.canceled;
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text} ${s.border}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+      {getTranslation(language, status)}
+    </span>
+  );
+}
+
+function UserAvatar({ user: u, size = "sm" }) {
+  const dim = size === "sm" ? "h-8 w-8 text-sm" : "h-10 w-10 text-base";
+  const letter = u.username?.charAt(0).toUpperCase() || u.full_name?.charAt(0).toUpperCase() || "U";
+  if (u.profile_image) return <img src={u.profile_image} className={`${dim} rounded-full object-cover`} alt="" />;
+  return (
+    <div className={`${dim} rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shrink-0`}>
+      {letter}
+    </div>
+  );
+}
+
+const TABS = ["overview", "channels", "requests", "users"];
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { language } = useLanguage();
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [channels, setChannels] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers]       = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+    (async () => {
       try {
-        const userData = await User.me();
-        setUser(userData);
-        
-        if (userData.role !== "admin") {
-          navigate(createPageUrl("Home"));
-          return;
-        }
-        
-        const channelsData = await TelegramChannel.getAll();
-        setChannels(channelsData);
-        
-        const requestsData = await AdRequest.getAll();
-        setRequests(requestsData);
-        
-        const usersData = await User.list("-created_date");
-        setUsers(usersData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        if (error.message.includes("User not authenticated") || error.status === 401) {
-          navigate(createPageUrl("Home"));
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [navigate]);
-  
-  const getPendingAdRequests = () => {
-    // These are non-suspicious requests waiting for admin or both
-    return requests.filter(req => req.status === "pending" && !req.is_suspicious);
+        const u = await User.me();
+        setUser(u);
+        if (u.role !== "admin") { navigate(createPageUrl("Home")); return; }
+        const [ch, reqs, us] = await Promise.all([TelegramChannel.getAll(), AdRequest.getAll(), User.list()]);
+        setChannels(ch); setRequests(reqs); setUsers(us);
+      } catch (err) {
+        if (err.status === 401 || err.message?.includes("Unauthorized")) navigate(createPageUrl("Home"));
+      } finally { setLoading(false); }
+    })();
+  }, []);
+
+  /* derived counts */
+  const pendingChannels   = channels.filter(c => !c.is_approved && !c.is_rejected);
+  const suspicious        = requests.filter(r => r.status === "pending_admin_review" && r.is_suspicious);
+  const pendingRegular    = requests.filter(r => r.status === "pending" && !r.is_suspicious);
+  const totalActionItems  = pendingChannels.length + suspicious.length + pendingRegular.length;
+
+  /* actions */
+  const approveChannel = async (id, approve) => {
+    try {
+      if (approve) await TelegramChannel.approve(id); else await TelegramChannel.reject(id);
+      setChannels(await TelegramChannel.getAll());
+    } catch (e) { console.error(e); }
   };
 
-  const getSuspiciousRequestsPendingAdminReview = () => {
-    return requests.filter(req => req.status === "pending_admin_review" && req.is_suspicious);
-  };
-  
-  const handleAdminApproveSuspiciousRequest = async (requestId) => {
+  const approveRegularRequest = async (id) => {
     try {
-      await AdRequest.update(requestId, { 
-        status: "admin_approved", // Now it's like admin approved a regular request
-        admin_approved: true,
-        // owner_approved remains false, is_suspicious remains true for records
+      const req = requests.find(r => r.id === id);
+      const upd = { admin_approved: true, status: req?.owner_approved ? "approved" : "admin_approved" };
+      await AdRequest.update(id, upd);
+      setRequests(await AdRequest.list());
+    } catch (e) { console.error(e); }
+  };
+
+  const approveSuspicious = async (id) => {
+    try {
+      await AdRequest.update(id, { status: "admin_approved", admin_approved: true });
+      setRequests(await AdRequest.list());
+    } catch (e) { console.error(e); }
+  };
+
+  const rejectRequest = async (id, reason = "Not suitable content") => {
+    try {
+      const req = requests.find(r => r.id === id);
+      await AdRequest.update(id, {
+        status: "rejected", rejection_reason: reason,
+        admin_approved: false, owner_approved: false,
+        ...(req?.status === "pending_admin_review" ? { is_suspicious: false } : {}),
       });
-      const requestsData = await AdRequest.list("-created_date");
-      setRequests(requestsData);
-    } catch (error) {
-      console.error("Error approving suspicious ad request:", error);
-    }
-  };
-  
-  const handleAdminApproveRegularRequest = async (requestId) => {
-    try {
-      const request = requests.find(r => r.id === requestId);
-      if (!request) return;
-
-      const updateData = { admin_approved: true };
-      if (request.owner_approved) {
-        updateData.status = "approved";
-      } else {
-        updateData.status = "admin_approved";
-      }
-      await AdRequest.update(requestId, updateData);
-      
-      const requestsData = await AdRequest.list("-created_date");
-      setRequests(requestsData);
-    } catch (error) {
-      console.error("Error approving ad request:", error);
-    }
-  };
-  
-  const handleAdminRejectRequest = async (requestId, reason = "Not suitable content") => {
-    try {
-      const userData = await User.me();
-      const requestToUpdate = requests.find(r => r.id === requestId); // Find the request to check its current status
-
-      const updatePayload = { 
-        status: "rejected",
-        rejection_reason: reason,
-        rejected_by: userData.id,
-        admin_approved: false, 
-        owner_approved: false, 
-      };
-
-      // If the request was specifically in 'pending_admin_review' (i.e., actively suspicious)
-      // and is now being rejected by an admin, mark 'is_suspicious' as false.
-      if (requestToUpdate && requestToUpdate.status === "pending_admin_review" && requestToUpdate.is_suspicious) {
-        updatePayload.is_suspicious = false; 
-      }
-      
-      await AdRequest.update(requestId, updatePayload);
-      
-      const requestsData = await AdRequest.list("-created_date");
-      setRequests(requestsData);
-    } catch (error) {
-      console.error("Error rejecting ad request:", error);
-    }
-  };
-  
-  const getPendingChannels = () => {
-    return channels.filter(channel => !channel.is_approved);
-  };
-  
-  const getPendingRequests = () => {
-    return requests.filter(req => req.status === "pending");
+      setRequests(await AdRequest.list());
+    } catch (e) { console.error(e); }
   };
 
-  // Placeholder for channel approval/rejection
-  const handleChannelApproval = async (channelId, approve) => {
-  try {
-    if (approve) {
-      await TelegramChannel.approve(channelId); // POST /channels/<id>/approve
-    } else {
-      await TelegramChannel.reject(channelId); // POST /channels/<id>/reject
-    }
-
-    const updatedChannels = await TelegramChannel.getAll(); // Перезагружаем список
-    setChannels(updatedChannels);
-  } catch (error) {
-    console.error("Error approving/rejecting channel:", error);
-  }
-};
-
-  
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-500">
-            {getTranslation(language, "loading")}
-          </p>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center space-y-3">
+        <div className="relative mx-auto h-12 w-12">
+          <div className="absolute inset-0 animate-ping rounded-full bg-slate-200 opacity-60" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700" />
         </div>
+        <p className="text-gray-500 text-sm">{getTranslation(language, "loading")}</p>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const tabDefs = [
+    { id: "overview",  label: getTranslation(language, "overview"),  badge: totalActionItems || null },
+    { id: "channels",  label: getTranslation(language, "manageChannels"), badge: pendingChannels.length || null },
+    { id: "requests",  label: getTranslation(language, "adRequests"),  badge: (suspicious.length + pendingRegular.length) || null },
+    { id: "users",     label: getTranslation(language, "allUsers") },
+  ];
 
   return (
-    <div className="space-y-8">
-      <DashboardHeader
-        accent="slate"
+    <div className="space-y-6">
+      <DashboardHeader accent="slate"
         title={getTranslation(language, "adminDashboard")}
-        subtitle={language === "en"
-          ? `Welcome back, ${user?.username || user?.full_name}!`
-          : `ברוך שובך, ${user?.username || user?.full_name}!`
-        }
+        subtitle={language === "en" ? `Welcome back, ${user?.username || user?.full_name}!` : `ברוך שובך, ${user?.username || user?.full_name}!`}
       >
-        <Button
-          variant="outline"
-          onClick={() => navigate(createPageUrl("Home"))}
-          className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white backdrop-blur flex items-center gap-2"
-        >
-          <Home className="h-4 w-4" />
-          {getTranslation(language, "home")}
+        <Button variant="outline" onClick={() => navigate(createPageUrl("Home"))}
+          className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white backdrop-blur gap-2">
+          <Home className="h-4 w-4" />{getTranslation(language, "home")}
+        </Button>
+        <Button variant="outline" onClick={() => navigate(createPageUrl("AdminSettings"))}
+          className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white backdrop-blur gap-2">
+          <Settings className="h-4 w-4" />{getTranslation(language, "systemSettings")}
         </Button>
       </DashboardHeader>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-4 gap-1 mb-8">
-          <TabsTrigger value="overview">{getTranslation(language, "overview")}</TabsTrigger>
-          <TabsTrigger value="channels">{getTranslation(language, "channels")}</TabsTrigger>
-          <TabsTrigger value="requests">{getTranslation(language, "adRequests")}</TabsTrigger>
-          <TabsTrigger value="users">{getTranslation(language, "users")}</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overview" className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              icon={Users}
-              color="blue"
-              label={getTranslation(language, "totalUsers")}
-              value={users.length}
-              onClick={() => navigate(createPageUrl("AdminUsers"))}
-            />
-            <StatCard
-              icon={MessageSquare}
-              color="purple"
-              label={getTranslation(language, "totalChannels")}
-              value={channels.length}
-              onClick={() => navigate(createPageUrl("AdminChannels?status=all"))}
-            />
-            <StatCard
-              icon={Clock}
-              color="yellow"
-              label={getTranslation(language, "pendingChannels")}
-              value={getPendingChannels().length}
-              onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))}
-            />
-            <StatCard
-              icon={Clock}
-              color="orange"
-              label={getTranslation(language, "pendingRequests")}
-              value={getPendingRequests().length}
-              onClick={() => setActiveTab("requests")}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="rounded-2xl border-gray-100 shadow-sm">
-              <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle>{getTranslation(language, "pendingChannels")}</CardTitle>
-                {getPendingChannels().length > 0 && 
-                  <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))}>
-                    {getTranslation(language, "viewAll")} ({getPendingChannels().length})
-                  </Button>
-                }
-              </CardHeader>
-              <CardContent>
-                {getPendingChannels().length === 0 ? (
-                  <div className="text-center py-8">
-                    <CheckCircle className="h-10 w-10 text-green-400 mx-auto mb-3" />
-                    <p className="text-gray-500">{getTranslation(language, "noPendingChannels")}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {getPendingChannels().slice(0, 5).map(channel => (
-                      <div key={channel.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-100 shrink-0">
-                            {channel.avatar_url ? (<img src={channel.avatar_url} alt={channel.name} className="w-full h-full object-cover"/>)
-                            : (<div className="w-full h-full flex items-center justify-center"><span className="text-blue-600 font-bold">{channel.name?.charAt(0).toUpperCase()}</span></div>)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-medium truncate" title={channel.name}>{channel.name}</p>
-                            <p className="text-xs text-gray-500 truncate">@{channel.admin_username}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 px-2 text-xs" onClick={() => handleChannelApproval(channel.id, false)}>
-                            {getTranslation(language, "reject")}
-                          </Button>
-                          <Button size="sm" className="bg-green-500 hover:bg-green-600 px-2 text-xs" onClick={() => handleChannelApproval(channel.id, true)}>
-                            {getTranslation(language, "approve")}
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    {getPendingChannels().length > 5 && (
-                      <Button variant="link" onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))} className="flex items-center gap-1 mt-2 p-0 h-auto">
-                        {getTranslation(language, "viewMore")}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card className="rounded-2xl border-gray-100 shadow-sm">
-              <CardHeader className="flex flex-row justify-between items-center">
-                <CardTitle>{getTranslation(language, "recentUsers")}</CardTitle>
-                {users.length > 0 &&
-                  <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl("AdminUsers"))}>
-                    {getTranslation(language, "viewAll")} ({users.length})
-                  </Button>
-                }
-              </CardHeader>
-              <CardContent>
-                {users.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">{getTranslation(language, "noUsersYet")}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {users.slice(0, 5).map(appUser => (
-                      <div key={appUser.id} className="flex items-center justify-between gap-2 border-b pb-3 last:border-b-0 last:pb-0">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
-                            {appUser.profile_image ? (<img src={appUser.profile_image} alt={appUser.username || appUser.full_name} className="w-full h-full object-cover rounded-full"/>)
-                            : (<Users className="h-5 w-5 text-gray-500" />)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-medium truncate">{appUser.username || appUser.full_name}</p>
-                            <p className="text-xs text-gray-500 truncate">{appUser.email}</p>
-                          </div>
-                        </div>
-                        <Badge variant={appUser.role === "admin" ? "default" : "secondary"} className={`shrink-0 ${appUser.role === "admin" ? "bg-blue-500 text-white" : ""}`}>
-                          {getTranslation(language, appUser.role)}
-                        </Badge>
-                      </div>
-                    ))}
-                    {users.length > 5 && (
-                      <Button variant="link" onClick={() => navigate(createPageUrl("AdminUsers"))} className="flex items-center gap-1 mt-2 p-0 h-auto">
-                        {getTranslation(language, "viewMore")}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="channels">
-          <Card className="rounded-2xl border-gray-100 shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <CardTitle>{getTranslation(language, "channelsManagement")}</CardTitle>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))}
-                >
-                  {getTranslation(language, "pendingChannels")}
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl("AdminChannels?status=approved"))}
-                >
-                  {getTranslation(language, "approvedChannels")}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {channels.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">{getTranslation(language, "noChannelsYet")}</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "channel")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "owner")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "statistics")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "status")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "actions")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {channels.slice(0, 10).map(channel => {
-                        const channelOwner = users.find(u => u.id === channel.owner_id);
-                        const statusBadgeColors = {
-                          approved: 'bg-green-100 text-green-800',
-                          pending: 'bg-yellow-100 text-yellow-800',
-                          rejected: 'bg-red-100 text-red-800'
-                        };
-                        
-                        let status = "pending";
-                        if (channel.is_approved) status = "approved";
-                        if (channel.is_rejected) status = "rejected";
-                        
-                        return (
-                          <tr key={channel.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-md bg-gray-100 overflow-hidden">
-                                  {channel.avatar_url ? (
-                                    <img className="h-10 w-10 object-cover" src={channel.avatar_url} alt="" />
-                                  ) : (
-                                    <div className="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
-                                      {channel.name?.charAt(0).toUpperCase()}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{channel.name}</div>
-                                  <div className="text-sm text-gray-500">@{channel.admin_username}</div>
-                                  <div className="text-xs text-gray-500">
-                                    {getTranslation(language, channel.category)}
-                                  </div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm text-gray-900">
-                                {channelOwner ? (
-                                  <div>
-                                    <div>{channelOwner.username || channelOwner.full_name}</div>
-                                    <div className="text-sm text-gray-500">{channelOwner.email}</div>
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-500 italic">
-                                    {getTranslation(language, "unknownOwner")}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {channel.admin_contact_email && (
-                                  <div>
-                                    <span className="font-medium">{getTranslation(language, "contactEmail")}:</span> {channel.admin_contact_email}
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm">
-                                <div>
-                                  <span className="font-medium">{getTranslation(language, "subscribers")}:</span> {channel.subscribers_count?.toLocaleString() || "N/A"}
-                                </div>
-                                <div>
-                                  <span className="font-medium">{getTranslation(language, "adPrice")}:</span> ₪{channel.post_price?.toFixed(2)}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={statusBadgeColors[status] || 'bg-gray-100'}>
-                                {getTranslation(language, status)}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-3">
-                                <Button 
-                                  onClick={() => window.open(channel.telegram_link, "_blank")}
-                                  variant="ghost"
-                                  size="sm"
-                                  title={getTranslation(language, "viewOnTelegram")}
-                                >
-                                  <ExternalLink className="h-4 w-4 text-gray-500" />
-                                </Button>
-                                <Button 
-                                  onClick={() => navigate(createPageUrl(`AdminChannelDetail?id=${channel.id}`))}
-                                  variant="ghost"
-                                  size="sm"
-                                  title={getTranslation(language, "viewDetails")}
-                                >
-                                  <Eye className="h-4 w-4 text-blue-500" />
-                                </Button>
-                                {status === "pending" && (
-                                  <>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      className="text-red-500"
-                                      title={getTranslation(language, "reject")}
-                                      onClick={() => handleChannelApproval(channel.id, false)}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm"
-                                      className="text-green-500"
-                                      title={getTranslation(language, "approve")}
-                                      onClick={() => handleChannelApproval(channel.id, true)}
-                                    >
-                                      <Check className="h-4 w-4" />
-                                    </Button>
-                                  </>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {channels.length > 10 && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline" onClick={() => navigate(createPageUrl("AdminChannels?status=all"))}>
-                    {getTranslation(language, "viewAllChannels")}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="requests">
-          <Card className="rounded-2xl border-gray-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>{getTranslation(language, "adRequestsManagement")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {requests.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">{getTranslation(language, "noRequestsYet")}</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                {/* Section for Suspicious Requests Pending Admin Review */}
-                {getSuspiciousRequestsPendingAdminReview().length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-red-600 flex items-center gap-2 mb-3">
-                      <AlertCircle className="h-5 w-5" />
-                      {getTranslation(language, "suspiciousRequestsPendingReview")} ({getSuspiciousRequestsPendingAdminReview().length})
-                    </h3>
-                    <div className="space-y-4 bg-red-50 p-4 rounded-lg">
-                      {getSuspiciousRequestsPendingAdminReview().map(request => {
-                        const channel = channels.find(c => c.id === request.channel_id);
-                        return (
-                          <div key={request.id} className="border-l-4 border-red-500 pl-4 py-2 bg-white rounded shadow-sm">
-                            <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
-                              <div>
-                                <h4 className="font-semibold">{channel?.name || getTranslation(language, "unknownChannel")}</h4>
-                                <p className="mt-1 text-sm text-gray-600 line-clamp-2">{request.ad_text}</p>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
-                                    {getTranslation(language, "suspicious")}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
-                                    {getTranslation(language, "pending_admin_review")}
-                                  </Badge>
-                                  {request.moderation_info?.categories?.map((category, idx) => (
-                                    <Badge key={idx} variant="outline" className="bg-gray-100">
-                                      {category}
-                                    </Badge>
-                                  ))}
-                                </div>
-                                {request.moderation_info?.explanation && (
-                                  <p className="text-xs text-red-600 mt-1">{request.moderation_info.explanation}</p>
-                                )}
-                              </div>
-                              <div className="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="text-red-500 border-red-200 hover:bg-red-100"
-                                  onClick={() => handleAdminRejectRequest(request.id, request.moderation_info?.explanation || "Prohibited content")}
-                                >
-                                  {getTranslation(language, "reject")}
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-500 hover:bg-green-600"
-                                  onClick={() => handleAdminApproveSuspiciousRequest(request.id)}
-                                >
-                                  {getTranslation(language, "markSafeAndForward")}
-                                </Button>
-                                 <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => navigate(createPageUrl(`AdRequest?id=${request.id}`))}
-                                >
-                                  {getTranslation(language, "viewDetails")}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
 
-                  <h3 className="text-lg font-medium">
-                    {getTranslation(language, "pendingRequests")} ({getPendingAdRequests().length})
-                  </h3>
-                  {getPendingAdRequests().length === 0 ? (
-                    <p className="text-gray-500">{getTranslation(language, "noPendingRequests")}</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {getPendingAdRequests().map(request => {
-                        const channel = channels.find(c => c.id === request.channel_id);
-                        return (
-                          <div key={request.id} className="border rounded-lg p-4">
-                            <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
-                              <div>
-                                <h4 className="font-semibold">{channel?.name || getTranslation(language, "unknownChannel")}</h4>
-                                <p className="mt-1 text-sm text-gray-600 line-clamp-2">{request.ad_text}</p>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
-                                    {getTranslation(language, "pending")}
-                                  </Badge>
-                                  <span className="text-sm text-gray-500">
-                                    {new Date(request.created_date).toLocaleDateString()} • ₪{request.price?.toFixed(2) || "0.00"}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-red-500 border-red-200 hover:bg-red-50"
-                                  onClick={() => handleAdminRejectRequest(request.id)}
-                                >
-                                  {getTranslation(language, "reject")}
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  className="bg-green-500 hover:bg-green-600"
-                                  onClick={() => handleAdminApproveRegularRequest(request.id)}
-                                >
-                                  {getTranslation(language, "approve")}
-                                </Button>
-                                 <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => navigate(createPageUrl(`AdRequest?id=${request.id}`))}
-                                >
-                                  {getTranslation(language, "viewDetails")}
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
+        {tabDefs.map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors rounded-t-lg
+              ${activeTab === tab.id ? "text-blue-600 bg-blue-50/60 border-b-2 border-blue-600 -mb-px" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}>
+            {tab.label}
+            {tab.badge ? (
+              <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${activeTab === tab.id ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-600"}`}>
+                {tab.badge}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
+      {/* ── OVERVIEW ── */}
+      {activeTab === "overview" && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon={Users}         color="blue"   label={getTranslation(language, "totalUsers")}     value={users.length}           onClick={() => setActiveTab("users")} />
+            <StatCard icon={MessageSquare} color="purple" label={getTranslation(language, "totalChannels")}  value={channels.length}        onClick={() => setActiveTab("channels")} />
+            <StatCard icon={Clock}         color="yellow" label={getTranslation(language, "pendingChannels")} value={pendingChannels.length} onClick={() => setActiveTab("channels")} />
+            <StatCard icon={CheckCircle}   color="sky"    label={getTranslation(language, "pendingRequests")} value={pendingRegular.length + suspicious.length} onClick={() => setActiveTab("requests")} />
+          </div>
+
+          {/* Action items */}
+          {totalActionItems > 0 && (
+            <div className="rounded-2xl border border-red-100 bg-red-50/50 p-5 space-y-3">
+              <h3 className="flex items-center gap-2 font-semibold text-red-700 text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {language === "en" ? `${totalActionItems} items need your attention` : `${totalActionItems} פריטים מחכים לטיפולך`}
+              </h3>
+              <div className="grid sm:grid-cols-3 gap-3">
+                {pendingChannels.length > 0 && (
+                  <button onClick={() => setActiveTab("channels")}
+                    className="flex items-center gap-3 rounded-xl bg-white border border-amber-200 p-3 text-left hover:shadow-sm transition-shadow">
+                    <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                      <MessageSquare className="h-4 w-4 text-amber-600" />
                     </div>
-                  )}
-                  
-                  <h3 className="text-lg font-medium mt-8">{getTranslation(language, "allRequests")}</h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-4">{getTranslation(language, "channel")}</th>
-                          <th className="text-left py-2 px-4">{getTranslation(language, "advertiser")}</th>
-                          <th className="text-left py-2 px-4">{getTranslation(language, "price")}</th>
-                          <th className="text-left py-2 px-4">{getTranslation(language, "status")}</th>
-                          <th className="text-left py-2 px-4">{getTranslation(language, "date")}</th>
-                          <th className="text-left py-2 px-4">{getTranslation(language, "actions")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {requests.map(request => {
-                          const channel = channels.find(c => c.id === request.channel_id);
-                          const advertiser = users.find(u => u.id === request.advertiser_id);
-                          const statusColor = {
-                            pending: 'bg-yellow-100 text-yellow-800',
-                            pending_admin_review: 'bg-orange-100 text-orange-800',
-                            admin_approved: 'bg-blue-100 text-blue-800',
-                            owner_approved: 'bg-blue-100 text-blue-800',
-                            approved: 'bg-green-100 text-green-800',
-                            rejected: 'bg-red-100 text-red-800',
-                            completed: 'bg-purple-100 text-purple-800',
-                            canceled: 'bg-gray-100 text-gray-800'
-                          };
-                          
-                          return (
-                            <tr key={request.id} className="border-b hover:bg-gray-50">
-                              <td className="py-3 px-4">{channel?.name || "-"}</td>
-                              <td className="py-3 px-4">{advertiser?.username || advertiser?.full_name || "-"}</td>
-                              <td className="py-3 px-4">₪{request.price?.toFixed(2) || "0.00"}</td>
-                              <td className="py-3 px-4">
-                                <Badge className={statusColor[request.status] || statusColor.pending_admin_review || 'bg-gray-100'}>
-                                  {getTranslation(language, request.status)}
-                                  {/* Display (suspicious) only if is_suspicious is true AND status is not pending_admin_review AND status is not rejected */}
-                                  {request.is_suspicious && 
-                                   request.status !== 'pending_admin_review' && 
-                                   request.status !== 'rejected' && 
-                                   ` (${getTranslation(language, 'suspicious')}`}
-                                </Badge>
-                              </td>
-                              <td className="py-3 px-4">{new Date(request.created_date).toLocaleDateString()}</td>
-                              <td className="py-3 px-4">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => navigate(createPageUrl(`AdRequest?id=${request.id}`))}
-                                >
-                                  {getTranslation(language, "viewDetails")}
-                                </Button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="users">
-          <Card className="rounded-2xl border-gray-100 shadow-sm">
-            <CardHeader>
-              <CardTitle>{getTranslation(language, "usersManagement")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {users.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500">{getTranslation(language, "noUsersYet")}</p>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">{pendingChannels.length}</p>
+                      <p className="text-xs text-gray-500">{getTranslation(language, "pendingChannels")}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 ml-auto" />
+                  </button>
+                )}
+                {suspicious.length > 0 && (
+                  <button onClick={() => setActiveTab("requests")}
+                    className="flex items-center gap-3 rounded-xl bg-white border border-red-200 p-3 text-left hover:shadow-sm transition-shadow">
+                    <div className="h-9 w-9 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                      <ShieldAlert className="h-4 w-4 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">{suspicious.length}</p>
+                      <p className="text-xs text-gray-500">{getTranslation(language, "suspicious") || "Suspicious"}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 ml-auto" />
+                  </button>
+                )}
+                {pendingRegular.length > 0 && (
+                  <button onClick={() => setActiveTab("requests")}
+                    className="flex items-center gap-3 rounded-xl bg-white border border-blue-200 p-3 text-left hover:shadow-sm transition-shadow">
+                    <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-slate-800 text-sm">{pendingRegular.length}</p>
+                      <p className="text-xs text-gray-500">{getTranslation(language, "pendingRequests")}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 ml-auto" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Quick views */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Pending channels */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h3 className="font-semibold text-slate-800 text-sm">{getTranslation(language, "pendingChannels")}</h3>
+                {pendingChannels.length > 0 && (
+                  <button onClick={() => setActiveTab("channels")} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                    {getTranslation(language, "viewAll")}<ArrowRight className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+              {pendingChannels.length === 0 ? (
+                <div className="flex flex-col items-center py-10 text-center">
+                  <CheckCircle className="h-8 w-8 text-emerald-300 mb-2" />
+                  <p className="text-sm text-gray-400">{language === "en" ? "All channels reviewed!" : "כל הערוצים עברו בדיקה!"}</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "user")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "role")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "memberSince")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "status")}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTranslation(language, "actions")}
-                        </th>
+                <div className="divide-y divide-gray-50">
+                  {pendingChannels.slice(0, 4).map(ch => (
+                    <div key={ch.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
+                      <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                        {ch.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-slate-800 truncate">{ch.name}</p>
+                        <p className="text-xs text-gray-400">{ch.subscribers_count?.toLocaleString()} subs · ₪{ch.post_price?.toFixed(2)}</p>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={() => approveChannel(ch.id, false)}
+                          className="h-7 w-7 rounded-lg border border-red-200 bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 transition-colors">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => approveChannel(ch.id, true)}
+                          className="h-7 w-7 rounded-lg border border-emerald-200 bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-colors">
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => navigate(createPageUrl(`AdminChannelDetail?id=${ch.id}`))}
+                          className="h-7 w-7 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-blue-500 hover:bg-gray-50 transition-colors">
+                          <Eye className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Recent users */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h3 className="font-semibold text-slate-800 text-sm">{getTranslation(language, "recentUsers")}</h3>
+                <button onClick={() => setActiveTab("users")} className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                  {getTranslation(language, "viewAll")}<ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {users.slice(0, 5).map(u => (
+                  <div key={u.id} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
+                    <UserAvatar user={u} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm text-slate-800 truncate">{u.username || u.full_name}</p>
+                      <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                    </div>
+                    <span className={`text-xs rounded-full px-2 py-0.5 font-medium shrink-0
+                      ${u.role === "admin" ? "bg-blue-100 text-blue-700" : u.application_role === "channel_owner" ? "bg-purple-100 text-purple-700" : u.application_role === "advertiser" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}>
+                      {u.role === "admin" ? getTranslation(language, "adminRole") : u.application_role ? getTranslation(language, `${u.application_role}Role`) : getTranslation(language, "userRole")}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CHANNELS ── */}
+      {activeTab === "channels" && (
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800">{getTranslation(language, "channelsManagement")}</h3>
+            <span className="text-xs text-gray-400">{channels.length} {getTranslation(language, "total") || "total"}</span>
+          </div>
+          {channels.length === 0 ? (
+            <div className="py-14 text-center text-gray-400 text-sm">{getTranslation(language, "noChannelsYet")}</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/60">
+                    <th className="text-left px-5 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide">{getTranslation(language, "channel")}</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide hidden sm:table-cell">{getTranslation(language, "stats")}</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide">{getTranslation(language, "status")}</th>
+                    <th className="text-right px-5 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide">{getTranslation(language, "actions")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {channels.map(ch => {
+                    const status = ch.is_approved ? "approved" : ch.is_rejected ? "rejected" : "pending";
+                    return (
+                      <tr key={ch.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                              {ch.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-slate-800 truncate max-w-[160px]">{ch.name}</p>
+                              <p className="text-xs text-gray-400 truncate max-w-[160px]">{ch.category || "—"}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 hidden sm:table-cell text-gray-600">
+                          <p>{ch.subscribers_count?.toLocaleString() || "—"} {getTranslation(language, "subscribers")}</p>
+                          <p className="text-xs text-gray-400">₪{ch.post_price?.toFixed(2)}</p>
+                        </td>
+                        <td className="px-4 py-3.5"><StatusBadge status={status} language={language} /></td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {ch.telegram_link && (
+                              <button onClick={() => window.open(ch.telegram_link, "_blank")}
+                                className="h-7 w-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button onClick={() => navigate(createPageUrl(`AdminChannelDetail?id=${ch.id}`))}
+                              className="h-7 w-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
+                              <Eye className="h-3.5 w-3.5" />
+                            </button>
+                            {status === "pending" && (
+                              <>
+                                <button onClick={() => approveChannel(ch.id, false)}
+                                  className="h-7 w-7 rounded-lg border border-red-200 bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 transition-colors">
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                                <button onClick={() => approveChannel(ch.id, true)}
+                                  className="h-7 w-7 rounded-lg border border-emerald-200 bg-emerald-50 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-colors">
+                                  <Check className="h-3.5 w-3.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {users.slice(0, 10).map(user => {
-                        return (
-                          <tr key={user.id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 overflow-hidden">
-                                  {user.profile_image ? (
-                                    <img className="h-10 w-10 object-cover" src={user.profile_image} alt="" />
-                                  ) : (
-                                    <div className="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-bold">
-                                      {user.username?.charAt(0).toUpperCase() || user.full_name?.charAt(0).toUpperCase() || "U"}
-                                    </div>
-                                  )}
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">{user.username || user.full_name}</div>
-                                  <div className="text-sm text-gray-500">{user.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={
-                                user.role === "admin" ? "bg-blue-100 text-blue-800" : // Platform Admin
-                                user.application_role === "channel_owner" ? "bg-purple-100 text-purple-800" : 
-                                user.application_role === "advertiser" ? "bg-green-100 text-green-800" :
-                                "bg-gray-100 text-gray-800" // Default/User with no app role
-                              }>
-                                {user.role === "admin" ? getTranslation(language, `adminRole`) : 
-                                 user.application_role ? getTranslation(language, `${user.application_role}Role`) :
-                                 getTranslation(language, 'userRole') /* Basic user */}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {new Date(user.created_date).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge className={user.is_blocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
-                                {getTranslation(language, user.is_blocked ? "blocked" : "active")}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                              <div className="flex space-x-3">
-                                <Button 
-                                  onClick={() => navigate(createPageUrl(`AdminUserDetail?id=${user.id}`))}
-                                  variant="ghost"
-                                  size="sm"
-                                  title={getTranslation(language, "viewDetails")}
-                                >
-                                  <Eye className="h-4 w-4 text-blue-500" />
-                                </Button>
-                                {user.role !== "admin" && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className={user.is_blocked ? "text-green-500" : "text-red-500"}
-                                    title={getTranslation(language, user.is_blocked ? "unblock" : "block")}
-                                    onClick={() => navigate(createPageUrl(`AdminUserDetail?id=${user.id}&action=${user.is_blocked ? "unblock" : "block"}`))}
-                                  >
-                                    {user.is_blocked ? (
-                                      <Check className="h-4 w-4" />
-                                    ) : (
-                                      <X className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── REQUESTS ── */}
+      {activeTab === "requests" && (
+        <div className="space-y-5">
+          {/* Suspicious */}
+          {suspicious.length > 0 && (
+            <div className="rounded-2xl border border-red-200 bg-red-50/40 overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-4 border-b border-red-200">
+                <ShieldAlert className="h-4 w-4 text-red-600" />
+                <h3 className="font-semibold text-red-700 text-sm">{getTranslation(language, "suspiciousRequestsPendingReview")} ({suspicious.length})</h3>
+              </div>
+              <div className="divide-y divide-red-100/60">
+                {suspicious.map(req => {
+                  const ch = channels.find(c => c.id === req.channel_id);
+                  return (
+                    <div key={req.id} className="px-5 py-4 flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-slate-800 text-sm">{ch?.name || getTranslation(language, "unknownChannel")}</p>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">{req.ad_text}</p>
+                        {req.moderation_info?.explanation && (
+                          <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1"><AlertCircle className="h-3 w-3" />{req.moderation_info.explanation}</p>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {req.moderation_info?.categories?.map((cat, i) => (
+                            <span key={i} className="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">{cat}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-100 gap-1"
+                          onClick={() => rejectRequest(req.id, req.moderation_info?.explanation || "Prohibited content")}>
+                          <X className="h-3.5 w-3.5" />{getTranslation(language, "reject")}
+                        </Button>
+                        <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 gap-1"
+                          onClick={() => approveSuspicious(req.id)}>
+                          <Check className="h-3.5 w-3.5" />{getTranslation(language, "markSafeAndForward")}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => navigate(createPageUrl(`AdRequest?id=${req.id}`))}>
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Pending regular */}
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-slate-800 text-sm">{getTranslation(language, "pendingRequests")} ({pendingRegular.length})</h3>
+            </div>
+            {pendingRegular.length === 0 ? (
+              <div className="flex flex-col items-center py-10">
+                <CheckCircle className="h-8 w-8 text-emerald-300 mb-2" />
+                <p className="text-sm text-gray-400">{getTranslation(language, "noPendingRequests")}</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {pendingRegular.map(req => {
+                  const ch = channels.find(c => c.id === req.channel_id);
+                  return (
+                    <div key={req.id} className="flex flex-col sm:flex-row gap-4 px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <p className="font-semibold text-slate-800 text-sm">{ch?.name || getTranslation(language, "unknownChannel")}</p>
+                          <StatusBadge status={req.status} language={language} />
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-1">{req.ad_text}</p>
+                        <p className="text-xs text-gray-400 mt-1">₪{req.price?.toFixed(2)} · {new Date(req.created_date).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 gap-1"
+                          onClick={() => rejectRequest(req.id)}>
+                          <X className="h-3.5 w-3.5" />{getTranslation(language, "reject")}
+                        </Button>
+                        <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 gap-1"
+                          onClick={() => approveRegularRequest(req.id)}>
+                          <Check className="h-3.5 w-3.5" />{getTranslation(language, "approve")}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => navigate(createPageUrl(`AdRequest?id=${req.id}`))}>
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* All requests table */}
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-800 text-sm">{getTranslation(language, "allRequests")}</h3>
+              <span className="text-xs text-gray-400">{requests.length} {getTranslation(language, "total") || "total"}</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/60">
+                    {[getTranslation(language,"channel"), getTranslation(language,"advertiser"), getTranslation(language,"price"), getTranslation(language,"status"), getTranslation(language,"date"), ""].map((h, i) => (
+                      <th key={i} className={`px-4 py-3 text-xs font-medium uppercase tracking-wide text-gray-400 ${i === 5 ? "text-right" : "text-left"}`}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {requests.map(req => {
+                    const ch  = channels.find(c => c.id === req.channel_id);
+                    const adv = users.find(u => u.id === req.advertiser_id);
+                    return (
+                      <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-slate-800">{ch?.name || "—"}</td>
+                        <td className="px-4 py-3 text-gray-600">{adv?.username || adv?.full_name || "—"}</td>
+                        <td className="px-4 py-3 font-semibold">₪{req.price?.toFixed(2) || "0.00"}</td>
+                        <td className="px-4 py-3"><StatusBadge status={req.status} language={language} /></td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{new Date(req.created_date).toLocaleDateString()}</td>
+                        <td className="px-4 py-3 text-right">
+                          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => navigate(createPageUrl(`AdRequest?id=${req.id}`))}>
+                            <Eye className="h-3.5 w-3.5 text-blue-500" />
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── USERS ── */}
+      {activeTab === "users" && (
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-800">{getTranslation(language, "usersManagement")}</h3>
+            <span className="text-xs text-gray-400">{users.length} {getTranslation(language, "total") || "total"}</span>
+          </div>
+          {users.length === 0 ? (
+            <div className="py-14 text-center text-gray-400 text-sm">{getTranslation(language, "noUsersYet")}</div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {users.map(u => (
+                <div key={u.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50/50 transition-colors">
+                  <UserAvatar user={u} />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-slate-800 truncate">{u.username || u.full_name}</p>
+                    <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2 shrink-0">
+                    <span className={`text-xs rounded-full px-2 py-0.5 font-medium
+                      ${u.role === "admin" ? "bg-blue-100 text-blue-700" : u.application_role === "channel_owner" ? "bg-purple-100 text-purple-700" : u.application_role === "advertiser" ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600"}`}>
+                      {u.role === "admin" ? getTranslation(language, "adminRole") : u.application_role ? getTranslation(language, `${u.application_role}Role`) : getTranslation(language, "userRole")}
+                    </span>
+                    <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${u.is_blocked ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
+                      {getTranslation(language, u.is_blocked ? "blocked" : "active")}
+                    </span>
+                    <p className="text-xs text-gray-400">{new Date(u.created_date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button onClick={() => navigate(createPageUrl(`AdminUserDetail?id=${u.id}`))}
+                      className="h-7 w-7 rounded-lg border border-gray-200 flex items-center justify-center text-blue-500 hover:bg-blue-50 transition-colors">
+                      <Eye className="h-3.5 w-3.5" />
+                    </button>
+                    {u.role !== "admin" && (
+                      <button onClick={() => navigate(createPageUrl(`AdminUserDetail?id=${u.id}&action=${u.is_blocked ? "unblock" : "block"}`))}
+                        className={`h-7 w-7 rounded-lg border flex items-center justify-center transition-colors
+                          ${u.is_blocked ? "border-emerald-200 text-emerald-600 hover:bg-emerald-50" : "border-red-200 text-red-500 hover:bg-red-50"}`}>
+                        {u.is_blocked ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              )}
-              {users.length > 10 && (
-                <div className="mt-4 text-center">
-                  <Button variant="outline" onClick={() => navigate(createPageUrl("AdminUsers"))}>
-                    {getTranslation(language, "viewAllUsers")}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              ))}
+            </div>
+          )}
+          {users.length > 15 && (
+            <div className="px-5 py-4 border-t border-gray-100 text-center">
+              <Button variant="outline" size="sm" onClick={() => navigate(createPageUrl("AdminUsers"))}>
+                {getTranslation(language, "viewAllUsers")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
