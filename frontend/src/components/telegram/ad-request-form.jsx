@@ -169,7 +169,7 @@ export default function AdRequestForm() {
                 {channel.description && <p className="text-sm text-gray-600 line-clamp-2">{channel.description}</p>}
                 <div className="flex gap-4 mt-2 text-sm text-gray-500">
                   <span>👥 {channel.subscribers_count?.toLocaleString()} {getTranslation(language, "subscribers")}</span>
-                  <span>💰 ${channel.post_price} {getTranslation(language, "perPost")}</span>
+                  <span>💰 ₪{channel.post_price} {getTranslation(language, "perPost")}</span>
                 </div>
               </div>
             </div>

@@ -181,7 +181,7 @@ export const translations = {
     edit: "Edit",
     post: "post",
     all: "All",
-    channels: "channels",
+    channels: "Channels",
     telegramChannels: "Telegram Channels",
     searchChannels: "Search channels",
     fetching: "Fetching...",
@@ -315,6 +315,14 @@ export const translations = {
     date: "Date",
     actions: "Actions",
     management: "Management",
+    users: "Users",
+    user: "User",
+    userRole: "User",
+    cancelled: "Canceled",
+    channel_ownerRole: "Channel Owner",
+    channelsManagement: "Channel Management",
+    usersManagement: "User Management",
+    adRequestsManagement: "Ad Request Management",
 
     // Ad Request Publication Time
     publicationTime: "Publication Time",
@@ -921,6 +929,14 @@ export const translations = {
     date: "תאריך",
     actions: "פעולות",
     management: "ניהול",
+    users: "משתמשים",
+    user: "משתמש",
+    userRole: "משתמש",
+    cancelled: "בוטל",
+    channel_ownerRole: "בעל ערוץ",
+    channelsManagement: "ניהול ערוצים",
+    usersManagement: "ניהול משתמשים",
+    adRequestsManagement: "ניהול בקשות פרסום",
 
     // Ad Request Publication Time
     publicationTime: "זמן פרסום",

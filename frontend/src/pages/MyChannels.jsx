@@ -174,7 +174,7 @@ setChannels(userChannels);
                 <CardHeader className="pb-2 pt-4">
                   <CardTitle className="text-lg truncate" title={channel.name}>{channel.name}</CardTitle>
                   <CardDescription className="text-xs text-gray-500">
-                    {getTranslation(language, "subscribers")}: {channel.subscribers_count?.toLocaleString() || "N/A"} | {getTranslation(language, "price")}: ${channel.post_price?.toFixed(2)}
+                    {getTranslation(language, "subscribers")}: {channel.subscribers_count?.toLocaleString() || "N/A"} | {getTranslation(language, "price")}: ₪{channel.post_price?.toFixed(2)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">

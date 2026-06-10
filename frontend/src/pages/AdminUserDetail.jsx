@@ -189,11 +189,13 @@ export default function AdminUserDetail() {
         
         <div className="flex items-center gap-2">
           <Badge className={
-            user.role === "admin" ? "bg-blue-100 text-blue-800" : 
-            user.role === "channel_owner" ? "bg-purple-100 text-purple-800" : 
+            user.role === "admin" ? "bg-blue-100 text-blue-800" :
+            user.application_role === "channel_owner" ? "bg-purple-100 text-purple-800" :
             "bg-green-100 text-green-800"
           }>
-            {getTranslation(language, `${user.role}Role`)}
+            {user.role === "admin"
+              ? getTranslation(language, "adminRole")
+              : getTranslation(language, user.application_role ? `${user.application_role}Role` : "userRole")}
           </Badge>
           
           <Badge className={user.is_blocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}>
@@ -261,7 +263,9 @@ export default function AdminUserDetail() {
                           <div className="text-sm">
                             <div className="text-gray-500">{getTranslation(language, "role")}</div>
                             <div className="font-medium">
-                              {getTranslation(language, `${user.role}Role`)}
+                              {user.role === "admin"
+                                ? getTranslation(language, "adminRole")
+                                : getTranslation(language, user.application_role ? `${user.application_role}Role` : "userRole")}
                             </div>
                           </div>
                         </div>

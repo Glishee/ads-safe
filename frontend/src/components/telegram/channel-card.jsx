@@ -67,7 +67,7 @@ export default function ChannelCard({ channel }) {
         
         <div className="mt-3 flex items-center justify-between">
           <span className="font-bold text-lg text-green-600">
-            ${channel.post_price?.toFixed(2)}
+            ₪{channel.post_price?.toFixed(2)}
           </span>
           <span className="text-xs text-gray-500">
             {getTranslation(language, "postPrice")}

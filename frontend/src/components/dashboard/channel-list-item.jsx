@@ -71,7 +71,7 @@ export default function ChannelListItem({
 
           <div className="flex flex-wrap gap-4 mt-2 text-sm">
             <span className="text-gray-700">
-              <span className="font-medium">${channel.post_price?.toFixed(2)}</span> /{" "}
+              <span className="font-medium">₪{channel.post_price?.toFixed(2)}</span> /{" "}
               {getTranslation(language, "post")}
             </span>
             <span className="text-gray-700">

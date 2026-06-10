@@ -273,7 +273,7 @@ export default function AdminChannelDetail() {
                         </Badge>
                         <Badge variant="outline" className="flex items-center">
                           <DollarSign className="mr-1 h-3 w-3" />
-                          ${channel.post_price?.toFixed(2)}
+                          ₪{channel.post_price?.toFixed(2)}
                         </Badge>
                       </div>
                       
@@ -367,7 +367,7 @@ export default function AdminChannelDetail() {
                             </div>
                             <div>
                               <div className="font-medium">{owner.username || owner.full_name}</div>
-                              <div className="text-sm text-gray-500">{owner.role && getTranslation(language, `${owner.role}Role`)}</div>
+                              <div className="text-sm text-gray-500">{getTranslation(language, owner.application_role ? `${owner.application_role}Role` : "userRole")}</div>
                             </div>
                           </div>
                           
@@ -492,7 +492,7 @@ export default function AdminChannelDetail() {
                 </div>
                 <div className="bg-green-50 rounded-md p-3 text-center">
                   <div className="text-lg font-bold text-green-700">
-                    ${channel.post_price?.toFixed(2) || "0.00"}
+                    ₪{channel.post_price?.toFixed(2) || "0.00"}
                   </div>
                   <div className="text-xs text-green-600">
                     {getTranslation(language, "postPrice")}
@@ -528,7 +528,7 @@ export default function AdminChannelDetail() {
                 <div className="bg-gray-50 p-2 rounded-md text-center">
                   {channel.subscribers_count > 0 && channel.post_price ? (
                     <div className="font-bold">
-                      ${((channel.post_price / channel.subscribers_count) * 1000).toFixed(2)} / 1000 {getTranslation(language, "subscribers")}
+                      ₪{((channel.post_price / channel.subscribers_count) * 1000).toFixed(2)} / 1000 {getTranslation(language, "subscribers")}
                     </div>
                   ) : (
                     <div className="text-sm text-gray-500">

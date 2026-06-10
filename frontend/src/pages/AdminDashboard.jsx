@@ -204,7 +204,7 @@ export default function AdminDashboard() {
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-8">
+        <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-4 gap-1 mb-8">
           <TabsTrigger value="overview">{getTranslation(language, "overview")}</TabsTrigger>
           <TabsTrigger value="channels">{getTranslation(language, "channels")}</TabsTrigger>
           <TabsTrigger value="requests">{getTranslation(language, "adRequests")}</TabsTrigger>
@@ -346,9 +346,9 @@ export default function AdminDashboard() {
         
         <TabsContent value="channels">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{getTranslation(language, "channels")} {getTranslation(language, "management")}</CardTitle>
-              <div className="flex gap-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <CardTitle>{getTranslation(language, "channelsManagement")}</CardTitle>
+              <div className="flex flex-wrap gap-2">
                 <Button 
                   variant="outline"
                   onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))}
@@ -453,7 +453,7 @@ export default function AdminDashboard() {
                                   <span className="font-medium">{getTranslation(language, "subscribers")}:</span> {channel.subscribers_count?.toLocaleString() || "N/A"}
                                 </div>
                                 <div>
-                                  <span className="font-medium">{getTranslation(language, "adPrice")}:</span> ${channel.post_price?.toFixed(2)}
+                                  <span className="font-medium">{getTranslation(language, "adPrice")}:</span> ₪{channel.post_price?.toFixed(2)}
                                 </div>
                               </div>
                             </td>
@@ -525,7 +525,7 @@ export default function AdminDashboard() {
         <TabsContent value="requests">
           <Card>
             <CardHeader>
-              <CardTitle>{getTranslation(language, "adRequests")} {getTranslation(language, "management")}</CardTitle>
+              <CardTitle>{getTranslation(language, "adRequestsManagement")}</CardTitle>
             </CardHeader>
             <CardContent>
               {requests.length === 0 ? (
@@ -547,7 +547,7 @@ export default function AdminDashboard() {
                         const channel = channels.find(c => c.id === request.channel_id);
                         return (
                           <div key={request.id} className="border-l-4 border-red-500 pl-4 py-2 bg-white rounded shadow-sm">
-                            <div className="flex justify-between items-start">
+                            <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
                               <div>
                                 <h4 className="font-semibold">{channel?.name || getTranslation(language, "unknownChannel")}</h4>
                                 <p className="mt-1 text-sm text-gray-600 line-clamp-2">{request.ad_text}</p>
@@ -611,7 +611,7 @@ export default function AdminDashboard() {
                         const channel = channels.find(c => c.id === request.channel_id);
                         return (
                           <div key={request.id} className="border rounded-lg p-4">
-                            <div className="flex justify-between items-start">
+                            <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-3">
                               <div>
                                 <h4 className="font-semibold">{channel?.name || getTranslation(language, "unknownChannel")}</h4>
                                 <p className="mt-1 text-sm text-gray-600 line-clamp-2">{request.ad_text}</p>
@@ -624,10 +624,10 @@ export default function AdminDashboard() {
                                   </span>
                                 </div>
                               </div>
-                              <div className="flex space-x-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="text-red-500 border-red-200 hover:bg-red-50"
                                   onClick={() => handleAdminRejectRequest(request.id)}
                                 >
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
                             <tr key={request.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">{channel?.name || "-"}</td>
                               <td className="py-3 px-4">{advertiser?.username || advertiser?.full_name || "-"}</td>
-                              <td className="py-3 px-4">${request.price?.toFixed(2) || "0.00"}</td>
+                              <td className="py-3 px-4">₪{request.price?.toFixed(2) || "0.00"}</td>
                               <td className="py-3 px-4">
                                 <Badge className={statusColor[request.status] || statusColor.pending_admin_review || 'bg-gray-100'}>
                                   {getTranslation(language, request.status)}
@@ -723,7 +723,7 @@ export default function AdminDashboard() {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle>{getTranslation(language, "users")} {getTranslation(language, "management")}</CardTitle>
+              <CardTitle>{getTranslation(language, "usersManagement")}</CardTitle>
             </CardHeader>
             <CardContent>
               {users.length === 0 ? (

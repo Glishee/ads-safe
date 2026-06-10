@@ -40,7 +40,7 @@ export default function ChannelStats({ channel, requests, language }) {
           <DollarSign className="h-5 w-5 text-green-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${calculateEarnings().toFixed(2)}</div>
+          <div className="text-2xl font-bold">₪{calculateEarnings().toFixed(2)}</div>
           <p className="text-xs text-gray-500 mt-1">
             {getTranslation(language, "fromCompletedAds")}
           </p>
@@ -85,7 +85,7 @@ export default function ChannelStats({ channel, requests, language }) {
           <CreditCard className="h-5 w-5 text-purple-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">${getEarningsPerSubscriber().toFixed(2)}</div>
+          <div className="text-2xl font-bold">₪{getEarningsPerSubscriber().toFixed(2)}</div>
           <p className="text-xs text-gray-500 mt-1">
             {getTranslation(language, "per1000Subscribers")}
           </p>

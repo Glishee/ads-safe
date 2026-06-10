@@ -94,7 +94,7 @@ export default function AdRequestItem({ request, channel, language, onUpdateStat
           <div className="mt-3 text-sm">
             <div className="flex justify-between items-center">
               <div className="font-medium">{getTranslation(language, "price")}</div>
-              <div className="font-bold">${request.price?.toFixed(2)}</div>
+              <div className="font-bold">₪{request.price?.toFixed(2)}</div>
             </div>
           </div>
           
