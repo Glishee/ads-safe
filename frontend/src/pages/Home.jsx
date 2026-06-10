@@ -348,9 +348,9 @@ export default function Home() {
                 {t("footerLegal")}
               </h4>
               <ul className="space-y-2.5 text-sm">
-                <li><button className="transition-colors hover:text-white">{t("termsOfService")}</button></li>
-                <li><button className="transition-colors hover:text-white">{t("privacyPolicy")}</button></li>
-                <li><button className="transition-colors hover:text-white">{t("contact")}</button></li>
+                <li><button onClick={() => navigate(createPageUrl("TermsOfService"))} className="transition-colors hover:text-white">{t("termsOfService")}</button></li>
+                <li><button onClick={() => navigate(createPageUrl("PrivacyPolicy"))} className="transition-colors hover:text-white">{t("privacyPolicy")}</button></li>
+                <li><button onClick={() => navigate(createPageUrl("ContactUs"))} className="transition-colors hover:text-white">{t("contact")}</button></li>
               </ul>
             </div>
           </div>

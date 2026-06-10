@@ -49,7 +49,7 @@ function LayoutContent({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [blockedError, setBlockedError] = useState(false);
   
-  const publicPages = ["Home", "Login", "Register", "VerifyEmail"];
+  const publicPages = ["Home", "Login", "Register", "VerifyEmail", "TermsOfService", "PrivacyPolicy", "ContactUs"];
   const isPublicPage = publicPages.includes(currentPageName);
 
   // Determine roles based on new structure

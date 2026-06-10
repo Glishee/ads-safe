@@ -44,6 +44,12 @@ import AdvertiserStats from "./AdvertiserStats";
 
 import AdminSettings from "./AdminSettings";
 
+import TermsOfService from "./TermsOfService";
+
+import PrivacyPolicy from "./PrivacyPolicy";
+
+import ContactUs from "./ContactUs";
+
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
 const PAGES = {
@@ -91,6 +97,12 @@ const PAGES = {
     AdvertiserStats: AdvertiserStats,
 
     AdminSettings: AdminSettings,
+
+    TermsOfService: TermsOfService,
+
+    PrivacyPolicy: PrivacyPolicy,
+
+    ContactUs: ContactUs,
 
 }
 
@@ -161,6 +173,12 @@ function PagesContent() {
                 <Route path="/AdvertiserStats" element={<AdvertiserStats />} />
 
                 <Route path="/AdminSettings" element={<AdminSettings />} />
+
+                <Route path="/TermsOfService" element={<TermsOfService />} />
+
+                <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+
+                <Route path="/ContactUs" element={<ContactUs />} />
 
             </Routes>
         </Layout>
