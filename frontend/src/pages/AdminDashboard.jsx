@@ -12,7 +12,6 @@ import {
   Users,
   MessageSquare,
   Clock,
-  Shield,
   ArrowRight,
   CheckCircle,
   Home,
@@ -25,6 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import StatCard from "@/components/dashboard/stat-card";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -180,28 +181,23 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {getTranslation(language, "adminDashboard")}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {language === "en" 
-              ? `Welcome back, ${user?.username || user?.full_name}!`
-              : `ברוך שובך, ${user?.username || user?.full_name}!`
-            }
-          </p>
-        </div>
-        
+      <DashboardHeader
+        accent="slate"
+        title={getTranslation(language, "adminDashboard")}
+        subtitle={language === "en"
+          ? `Welcome back, ${user?.username || user?.full_name}!`
+          : `ברוך שובך, ${user?.username || user?.full_name}!`
+        }
+      >
         <Button
           variant="outline"
           onClick={() => navigate(createPageUrl("Home"))}
-          className="flex items-center gap-2 mt-2 md:mt-0"
+          className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white backdrop-blur flex items-center gap-2"
         >
           <Home className="h-4 w-4" />
           {getTranslation(language, "home")}
         </Button>
-      </div>
+      </DashboardHeader>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full h-auto grid-cols-2 md:grid-cols-4 gap-1 mb-8">
@@ -212,42 +208,39 @@ export default function AdminDashboard() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{getTranslation(language, "totalUsers")}</CardTitle>
-                <Users className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{users.length}</div></CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{getTranslation(language, "totalChannels")}</CardTitle>
-                <MessageSquare className="h-5 w-5 text-purple-500" />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{channels.length}</div></CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{getTranslation(language, "pendingChannels")}</CardTitle>
-                <Clock className="h-5 w-5 text-yellow-500" />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{getPendingChannels().length}</div></CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">{getTranslation(language, "pendingRequests")}</CardTitle>
-                <Clock className="h-5 w-5 text-orange-500" />
-              </CardHeader>
-              <CardContent><div className="text-2xl font-bold">{getPendingRequests().length}</div></CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              icon={Users}
+              color="blue"
+              label={getTranslation(language, "totalUsers")}
+              value={users.length}
+              onClick={() => navigate(createPageUrl("AdminUsers"))}
+            />
+            <StatCard
+              icon={MessageSquare}
+              color="purple"
+              label={getTranslation(language, "totalChannels")}
+              value={channels.length}
+              onClick={() => navigate(createPageUrl("AdminChannels?status=all"))}
+            />
+            <StatCard
+              icon={Clock}
+              color="yellow"
+              label={getTranslation(language, "pendingChannels")}
+              value={getPendingChannels().length}
+              onClick={() => navigate(createPageUrl("AdminChannels?status=pending"))}
+            />
+            <StatCard
+              icon={Clock}
+              color="orange"
+              label={getTranslation(language, "pendingRequests")}
+              value={getPendingRequests().length}
+              onClick={() => setActiveTab("requests")}
+            />
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="rounded-2xl border-gray-100 shadow-sm">
               <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle>{getTranslation(language, "pendingChannels")}</CardTitle>
                 {getPendingChannels().length > 0 && 
@@ -297,7 +290,7 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="rounded-2xl border-gray-100 shadow-sm">
               <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle>{getTranslation(language, "recentUsers")}</CardTitle>
                 {users.length > 0 &&
@@ -345,7 +338,7 @@ export default function AdminDashboard() {
         </TabsContent>
         
         <TabsContent value="channels">
-          <Card>
+          <Card className="rounded-2xl border-gray-100 shadow-sm">
             <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <CardTitle>{getTranslation(language, "channelsManagement")}</CardTitle>
               <div className="flex flex-wrap gap-2">
@@ -523,7 +516,7 @@ export default function AdminDashboard() {
         </TabsContent>
         
         <TabsContent value="requests">
-          <Card>
+          <Card className="rounded-2xl border-gray-100 shadow-sm">
             <CardHeader>
               <CardTitle>{getTranslation(language, "adRequestsManagement")}</CardTitle>
             </CardHeader>
@@ -721,7 +714,7 @@ export default function AdminDashboard() {
         </TabsContent>
         
         <TabsContent value="users">
-          <Card>
+          <Card className="rounded-2xl border-gray-100 shadow-sm">
             <CardHeader>
               <CardTitle>{getTranslation(language, "usersManagement")}</CardTitle>
             </CardHeader>

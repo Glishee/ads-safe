@@ -11,19 +11,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
-  BarChart,
   DollarSign,
   Clock,
   CheckCircle,
   ArrowRight,
   MessageSquare,
   Search,
-  ListOrdered,
   Home,
   AlertCircle,
   RefreshCw
 } from "lucide-react";
 import { useLanguage } from "@/components/contexts/LanguageContext";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import StatCard from "@/components/dashboard/stat-card";
 
 export default function AdvertiserDashboard() {
   const navigate = useNavigate();
@@ -147,37 +147,30 @@ export default function AdvertiserDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">
-            {getTranslation(language, "advertiserDashboard")}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {language === "en" 
-              ? `Welcome back, ${user?.username || user?.full_name}!`
-              : `ברוך שובך, ${user?.username || user?.full_name}!`
-            }
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(createPageUrl("Home"))}
-            className="flex items-center gap-2"
-          >
-            <Home className="h-4 w-4" />
-            {getTranslation(language, "home")}
-          </Button>
-          <Button
-            onClick={() => navigate(createPageUrl("ChannelsList"))}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
-          >
-            <Search className="h-4 w-4" />
-            {getTranslation(language, "findChannels")}
-          </Button>
-        </div>
-      </div>
+      <DashboardHeader
+        accent="blue"
+        title={getTranslation(language, "advertiserDashboard")}
+        subtitle={language === "en"
+          ? `Welcome back, ${user?.username || user?.full_name}!`
+          : `ברוך שובך, ${user?.username || user?.full_name}!`
+        }
+      >
+        <Button
+          variant="outline"
+          onClick={() => navigate(createPageUrl("Home"))}
+          className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white backdrop-blur flex items-center gap-2"
+        >
+          <Home className="h-4 w-4" />
+          {getTranslation(language, "home")}
+        </Button>
+        <Button
+          onClick={() => navigate(createPageUrl("ChannelsList"))}
+          className="bg-white text-blue-700 hover:bg-blue-50 font-semibold flex items-center gap-2"
+        >
+          <Search className="h-4 w-4" />
+          {getTranslation(language, "findChannels")}
+        </Button>
+      </DashboardHeader>
 
       {fetchError && (
         <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
@@ -206,45 +199,31 @@ export default function AdvertiserDashboard() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  {getTranslation(language, "totalSpent")}
-                </CardTitle>
-                <DollarSign className="h-5 w-5 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₪{getTotalSpent().toFixed(2)}</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  {getTranslation(language, "activeOrders")}
-                </CardTitle>
-                <Clock className="h-5 w-5 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{getActiveRequests().length}</div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  {getTranslation(language, "completedOrders")}
-                </CardTitle>
-                 <CheckCircle className="h-5 w-5 text-purple-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{getCompletedRequests().length}</div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <StatCard
+              icon={DollarSign}
+              color="green"
+              label={getTranslation(language, "totalSpent")}
+              value={`₪${getTotalSpent().toFixed(2)}`}
+              onClick={() => navigate(createPageUrl("AdvertiserStats"))}
+            />
+            <StatCard
+              icon={Clock}
+              color="blue"
+              label={getTranslation(language, "activeOrders")}
+              value={getActiveRequests().length}
+              onClick={() => setActiveTab("orders")}
+            />
+            <StatCard
+              icon={CheckCircle}
+              color="purple"
+              label={getTranslation(language, "completedOrders")}
+              value={getCompletedRequests().length}
+              onClick={() => setActiveTab("orders")}
+            />
           </div>
           
-          <Card>
+          <Card className="rounded-2xl border-gray-100 shadow-sm">
             <CardHeader>
               <CardTitle>
                 {getTranslation(language, "recentActivity")}
@@ -298,35 +277,10 @@ export default function AdvertiserDashboard() {
               )}
             </CardContent>
           </Card>
-          
-          {/* Placeholder for charts - implement with a charting library if needed */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {getTranslation(language, "spendingOverTime")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-80 flex items-center justify-center">
-                <BarChart className="h-16 w-16 text-gray-300" />
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  {getTranslation(language, "popularChannels")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="h-80 flex items-center justify-center">
-                 <ListOrdered className="h-16 w-16 text-gray-300" />
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
         
         <TabsContent value="orders">
-          <Card>
+          <Card className="rounded-2xl border-gray-100 shadow-sm">
             <CardHeader>
               <CardTitle>
                 {getTranslation(language, "myOrders")}

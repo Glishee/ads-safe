@@ -5,7 +5,7 @@ import { AdRequest } from "@/api/entities";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DollarSign,
   Clock,
@@ -13,12 +13,13 @@ import {
   ArrowRight,
   MessageSquare,
   Plus,
-  BarChart2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import DashboardHeader from "@/components/dashboard/dashboard-header";
+import StatCard from "@/components/dashboard/stat-card";
 // Assuming you might want a simple chart for recent earnings - install and import 'recharts' if not already.
 // For now, I'll just make a placeholder for a chart.
 
@@ -127,82 +128,55 @@ export default function ChannelOwnerDashboard() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold">
-            {getTranslation(language, "channelOwnerDashboard")}
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {language === "en"
-              ? `Welcome back, ${user?.username || user?.full_name}!`
-              : `ברוך שובך, ${user?.username || user?.full_name}!`
-            }
-          </p>
-        </div>
+      <DashboardHeader
+        accent="purple"
+        title={getTranslation(language, "channelOwnerDashboard")}
+        subtitle={language === "en"
+          ? `Welcome back, ${user?.username || user?.full_name}!`
+          : `ברוך שובך, ${user?.username || user?.full_name}!`
+        }
+      >
         <Button
           onClick={() => handleNavigation("AddChannel")}
-          className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 shrink-0"
+          className="bg-white text-purple-700 hover:bg-purple-50 font-semibold flex items-center gap-2"
           size="sm"
         >
           <Plus className="h-4 w-4" />
           {getTranslation(language, "addChannel")}
         </Button>
-      </div>
-      
+      </DashboardHeader>
+
       {/* Stats Cards — clickable shortcuts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card
-          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+        <StatCard
+          icon={DollarSign}
+          color="green"
+          label={getTranslation(language, "totalEarnings")}
+          value={`₪${getTotalEarnings().toFixed(2)}`}
+          hint={getTranslation(language, "fromCompletedAds")}
           onClick={() => handleNavigation("ChannelOwnerStats")}
-        >
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              {getTranslation(language, "totalEarnings")}
-            </CardTitle>
-            <DollarSign className="h-5 w-5 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₪{getTotalEarnings().toFixed(2)}</div>
-            <p className="text-xs text-gray-500">{getTranslation(language, "fromCompletedAds")}</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+        />
+        <StatCard
+          icon={Clock}
+          color="yellow"
+          label={getTranslation(language, "pendingRequests")}
+          value={getPendingOwnerActionRequestsCount()}
+          hint={getTranslation(language, "waitingForApproval")}
           onClick={() => handleNavigation("ChannelOwnerAdRequests")}
-        >
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              {getTranslation(language, "pendingRequests")}
-            </CardTitle>
-            <Clock className="h-5 w-5 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getPendingOwnerActionRequestsCount()}</div>
-            <p className="text-xs text-gray-500">{getTranslation(language, "waitingForApproval")}</p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+        />
+        <StatCard
+          icon={CheckCircle}
+          color="purple"
+          label={getTranslation(language, "activeChannels")}
+          value={getActiveChannelsCount()}
+          hint={getTranslation(language, "approvedChannels")}
           onClick={() => handleNavigation("MyChannels")}
-        >
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-500">
-              {getTranslation(language, "activeChannels")}
-            </CardTitle>
-            <CheckCircle className="h-5 w-5 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getActiveChannelsCount()}</div>
-            <p className="text-xs text-gray-500">{getTranslation(language, "approvedChannels")}</p>
-          </CardContent>
-        </Card>
+        />
       </div>
 
       {/* Quick View Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
+        <Card className="rounded-2xl border-gray-100 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="text-base">{getTranslation(language, "recentRequests")}</CardTitle>
             {adRequests.length > 0 && (
@@ -240,7 +214,7 @@ export default function ChannelOwnerDashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-2xl border-gray-100 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="text-base">{getTranslation(language, "myChannels")}</CardTitle>
             {channels.length > 0 && (
@@ -294,21 +268,6 @@ export default function ChannelOwnerDashboard() {
           </CardContent>
         </Card>
       </div>
-      
-      {/* Placeholder for Earnings Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{getTranslation(language, "earningsOverTime")}</CardTitle>
-          <CardDescription>{getTranslation(language, "last30Days")}</CardDescription>
-        </CardHeader>
-        <CardContent className="h-80 flex items-center justify-center">
-          {/* Replace with actual chart component, e.g., from Recharts */}
-          <div className="text-center text-gray-400">
-            <BarChart2 className="h-16 w-16 mx-auto mb-2" />
-            <p>{getTranslation(language, "chartDataUnavailable")}</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
