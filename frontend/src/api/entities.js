@@ -88,6 +88,11 @@ export const AdRequest = {
 };
 
 
+export const SystemSettings = {
+  get: () => api.get("/admin/settings"),
+  update: (data) => api.put("/admin/settings", data),
+};
+
 export const User = {
   login: async (credentials) => {
     const data = await api.post("/auth/login", credentials);

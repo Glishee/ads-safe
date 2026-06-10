@@ -10,6 +10,7 @@ from routes.upload import upload_bp
 from routes.ad_requests import ad_request_bp
 from routes.llm import llm_bp
 from routes.telegram_api import telegram_bp
+from routes.settings import settings_bp
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "your-super-secret-key")
@@ -46,6 +47,7 @@ app.register_blueprint(upload_bp, url_prefix="/api")
 app.register_blueprint(ad_request_bp, url_prefix='/api')
 app.register_blueprint(llm_bp, url_prefix='/api')
 app.register_blueprint(telegram_bp, url_prefix="/api")
+app.register_blueprint(settings_bp, url_prefix="/api")
 
 @app.route('/api/ping', methods=['GET', 'POST', 'OPTIONS'])
 def ping():
