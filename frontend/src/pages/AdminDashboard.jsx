@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, TelegramChannel, AdRequest } from "@/api/entities";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,13 +50,19 @@ const TABS = ["overview", "channels", "requests", "users"];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language } = useLanguage();
-  const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser]         = useState(null);
+  const [loading, setLoading]   = useState(true);
   const [channels, setChannels] = useState([]);
   const [requests, setRequests] = useState([]);
   const [users, setUsers]       = useState([]);
-  const [activeTab, setActiveTab] = useState("overview");
+
+  // Sync active tab with URL so browser back/forward works on mobile
+  const activeTab = new URLSearchParams(location.search).get("tab") || "overview";
+  const setActiveTab = (tab) => {
+    navigate(`${location.pathname}?tab=${tab}`, { replace: false });
+  };
 
   useEffect(() => {
     (async () => {

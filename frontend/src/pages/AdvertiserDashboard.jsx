@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, AdRequest, TelegramChannel } from "@/api/entities";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { getTranslation } from "@/components/translation/translations";
 import { Button } from "@/components/ui/button";
@@ -45,19 +45,18 @@ function StatusBadge({ status, language }) {
 
 export default function AdvertiserDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language } = useLanguage();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState([]);
   const [channels, setChannels] = useState({});
-  const [activeTab, setActiveTab] = useState("overview");
   const [fetchError, setFetchError] = useState("");
   const [slowLoad, setSlowLoad] = useState(false);
 
-  useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get("tab");
-    if (tab) setActiveTab(tab);
-  }, []);
+  // URL-synced tab — back/forward navigation works on mobile
+  const activeTab = new URLSearchParams(location.search).get("tab") || "overview";
+  const setActiveTab = (tab) => navigate(`${location.pathname}?tab=${tab}`, { replace: false });
 
   useEffect(() => {
     if (!loading) return;

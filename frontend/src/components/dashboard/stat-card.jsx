@@ -18,8 +18,6 @@ export default function StatCard({ icon: Icon, label, value, hint, color = "blue
         ${border}
         ${onClick ? "cursor-pointer hover:-translate-y-1 hover:shadow-lg" : ""}`}
     >
-      {/* Subtle background glow on hover */}
-      <div className={`pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${bg} opacity-[0.03]`} />
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
