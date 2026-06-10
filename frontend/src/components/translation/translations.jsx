@@ -2,7 +2,7 @@
 export const translations = {
   en: {
     // Common
-    welcome: "Welcome to TeleAds",
+    welcome: "Welcome to AdMarket",
     login: "Login",
     register: "Register",
     email: "Email",
@@ -395,7 +395,7 @@ export const translations = {
 
     // Channel owner translations
     addChannel: "Add Channel",
-    addChannelDescription: "Fill out the details below to add your Telegram channel to TeleAds. We'll automatically fetch some information from Telegram.",
+    addChannelDescription: "Fill out the details below to add your Telegram channel to AdMarket. We'll automatically fetch some information from Telegram.",
     telegramLink: "Telegram Channel Link",
     telegramLinkHelp: "Enter the full URL to your public Telegram channel (e.g., https://t.me/channelname)",
     fetchInfo: "Fetch Info",
@@ -541,7 +541,7 @@ export const translations = {
     homeBadge: "Safe Telegram advertising marketplace",
     homeHeroTitle1: "Advertise on Telegram.",
     homeHeroTitle2: "Safely. Simply.",
-    homeHeroSubtitle: "TeleAds connects advertisers with verified Telegram channel owners. Every ad passes AI moderation and a team review — so both sides are protected.",
+    homeHeroSubtitle: "AdMarket connects advertisers with verified Telegram channel owners. Every ad passes AI moderation and a team review — so both sides are protected.",
     homeGoToDashboard: "Go to Dashboard",
     monetizeMyChannel: "Monetize My Channel",
     homeTrustLine: "Free to join · Prices in ₪ · Hebrew & English",
@@ -555,8 +555,8 @@ export const translations = {
     step2Desc: "Send your ad text and media. AI moderation and our admins review every request before it reaches the channel owner.",
     step3Title: "Get published",
     step3Desc: "The channel owner approves and publishes your ad. Track the status of every order from your dashboard.",
-    whyTeleAds: "Why TeleAds",
-    whyTeleAdsSubtitle: "A marketplace built around one idea: advertising on Telegram should be safe for everyone.",
+    whyAdMarket: "Why AdMarket",
+    whyAdMarketSubtitle: "A marketplace built around one idea: advertising on Telegram should be safe for everyone.",
     featVerifiedTitle: "Verified channels",
     featVerifiedDesc: "Every channel is reviewed by our team before it appears in the catalog. No bots, no fake audiences.",
     featModerationTitle: "AI content moderation",
@@ -588,7 +588,7 @@ export const translations = {
 
   he: {
     // Common
-    welcome: "ברוכים הבאים ל-TeleAds",
+    welcome: "ברוכים הבאים ל-AdMarket",
     login: "התחברות",
     register: "הרשמה",
     email: "אימייל",
@@ -987,7 +987,7 @@ export const translations = {
 
     // Channel owner translations
     addChannel: "הוסף ערוץ",
-    addChannelDescription: "מלא את הפרטים להלן כדי להוסיף את ערוץ הטלגרם שלך ל-TeleAds. אנו נאחזר באופן אוטומטי מידע מטלגרם.",
+    addChannelDescription: "מלא את הפרטים להלן כדי להוסיף את ערוץ הטלגרם שלך ל-AdMarket. אנו נאחזר באופן אוטומטי מידע מטלגרם.",
     telegramLink: "קישור לערוץ הטלגרם",
     telegramLinkHelp: "הזן את כתובת ה-URL המלאה לערוץ הטלגרם הציבורי שלך (לדוגמה, https://t.me/channelname)",
     fetchInfo: "אחזר מידע",
@@ -1132,7 +1132,7 @@ export const translations = {
     homeBadge: "זירת פרסום בטוחה בטלגרם",
     homeHeroTitle1: "לפרסם בטלגרם.",
     homeHeroTitle2: "בבטחה. בפשטות.",
-    homeHeroSubtitle: "TeleAds מחברת בין מפרסמים לבעלי ערוצי טלגרם מאומתים. כל מודעה עוברת סינון AI ובדיקת צוות — כך ששני הצדדים מוגנים.",
+    homeHeroSubtitle: "AdMarket מחברת בין מפרסמים לבעלי ערוצי טלגרם מאומתים. כל מודעה עוברת סינון AI ובדיקת צוות — כך ששני הצדדים מוגנים.",
     homeGoToDashboard: "ללוח הבקרה",
     monetizeMyChannel: "להרוויח מהערוץ שלי",
     homeTrustLine: "הצטרפות חינם · מחירים בשקלים · עברית ואנגלית",
@@ -1146,8 +1146,8 @@ export const translations = {
     step2Desc: "שולחים את טקסט המודעה והמדיה. סינון AI והמנהלים שלנו בודקים כל בקשה לפני שהיא מגיעה לבעל הערוץ.",
     step3Title: "המודעה עולה",
     step3Desc: "בעל הערוץ מאשר ומפרסם את המודעה. עוקבים אחרי הסטטוס של כל הזמנה מלוח הבקרה.",
-    whyTeleAds: "למה TeleAds",
-    whyTeleAdsSubtitle: "פלטפורמה שנבנתה סביב רעיון אחד: פרסום בטלגרם צריך להיות בטוח לכולם.",
+    whyAdMarket: "למה AdMarket",
+    whyAdMarketSubtitle: "פלטפורמה שנבנתה סביב רעיון אחד: פרסום בטלגרם צריך להיות בטוח לכולם.",
     featVerifiedTitle: "ערוצים מאומתים",
     featVerifiedDesc: "כל ערוץ נבדק על ידי הצוות שלנו לפני שהוא מופיע בקטלוג. בלי בוטים, בלי קהלים מזויפים.",
     featModerationTitle: "סינון תוכן מבוסס AI",

@@ -201,15 +201,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== Why TeleAds ===== */}
+      {/* ===== Why AdMarket ===== */}
       <section className="bg-slate-50 py-20 md:py-28">
         <div className="container mx-auto px-4">
           <div className="mx-auto mb-14 max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
-              {t("whyTeleAds")}
+              {t("whyAdMarket")}
             </h2>
             <p className="mt-4 text-gray-600">
-              {t("whyTeleAdsSubtitle")}
+              {t("whyAdMarketSubtitle")}
             </p>
           </div>
 
@@ -316,7 +316,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid gap-10 md:grid-cols-3">
             <div>
-              <h3 className="text-xl font-bold text-white">TeleAds</h3>
+              <h3 className="text-xl font-bold text-white">AdMarket</h3>
               <p className="mt-3 max-w-xs text-sm leading-relaxed">{t("footerTagline")}</p>
             </div>
 
@@ -356,7 +356,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
-            © {new Date().getFullYear()} TeleAds. {t("allRightsReserved")}
+            © {new Date().getFullYear()} AdMarket. {t("allRightsReserved")}
           </div>
         </div>
       </footer>

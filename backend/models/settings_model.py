@@ -2,7 +2,7 @@ from pymongo import MongoClient
 import os
 
 client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
-db = client[os.getenv("MONGO_DB", "teleads")]
+db = client[os.getenv("MONGO_DB", "admarket")]
 settings_collection = db["system_settings"]
 
 DEFAULT_SETTINGS = {

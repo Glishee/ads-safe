@@ -121,8 +121,8 @@ def webhook():
 
         if not web_user_id:
             _send(chat_id,
-                "👋 Welcome to <b>TeleAds</b>!\n\n"
-                "To add your channel, open the TeleAds website and click "
+                "👋 Welcome to <b>AdMarket</b>!\n\n"
+                "To add your channel, open the AdMarket website and click "
                 "<b>Add Channel via Telegram Bot</b>."
             )
             return jsonify({"ok": True})
@@ -212,7 +212,7 @@ def webhook():
 
         if not web_user_id:
             _send(chat_id,
-                "❌ Session expired. Please restart from the TeleAds website.",
+                "❌ Session expired. Please restart from the AdMarket website.",
                 reply_markup=_REMOVE_KEYBOARD,
             )
             _sessions.pop(chat_id, None)
@@ -247,7 +247,7 @@ def webhook():
                 f"💰 ${channel['price']:.2f}/post\n"
                 f"📂 {CATEGORY_LABEL[cat]}\n\n"
                 "An admin will review your channel shortly.\n"
-                "Check the status on the <b>TeleAds</b> website.",
+                "Check the status on the <b>AdMarket</b> website.",
                 reply_markup=_REMOVE_KEYBOARD,
             )
         except Exception as e:
@@ -262,7 +262,7 @@ def webhook():
 
     # fallback ──────────────────────────────────────────────────────────────────
     _send(chat_id,
-        "To add your channel, please open the TeleAds website and click "
+        "To add your channel, please open the AdMarket website and click "
         "<b>Add Channel via Telegram Bot</b>."
     )
     return jsonify({"ok": True})

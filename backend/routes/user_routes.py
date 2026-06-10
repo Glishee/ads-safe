@@ -37,7 +37,7 @@ def _send_verification_email(to_email, username, token):
 <body style="font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;">
   <div style="max-width:480px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
     <div style="background:#2563EB;padding:28px 32px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;">TeleAds</h1>
+      <h1 style="color:#fff;margin:0;font-size:22px;">AdMarket</h1>
     </div>
     <div style="padding:32px;">
       <h2 style="margin:0 0 12px;font-size:20px;">Confirm your email</h2>
@@ -63,9 +63,9 @@ def _send_verification_email(to_email, username, token):
 </html>"""
 
         result = resend.Emails.send({
-            "from": "TeleAds <onboarding@resend.dev>",
+            "from": "AdMarket <onboarding@resend.dev>",
             "to": [to_email],
-            "subject": "Verify your TeleAds account",
+            "subject": "Verify your AdMarket account",
             "html": html_body,
         })
         print(f"[EMAIL] Sent OK — id={getattr(result, 'id', result)}")
