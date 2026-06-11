@@ -24,8 +24,8 @@ const TABS = [
 
 function ToggleRow({ labelKey, helpKey, checked, onChange, danger = false, language }) {
   return (
-    <div className={`flex items-center justify-between gap-4 rounded-xl p-4 ${danger ? "bg-red-50 border border-red-100" : "bg-gray-50"}`}>
-      <div className="min-w-0">
+    <div className={`flex items-center justify-between gap-4 rounded-xl border p-4 ${danger ? "bg-red-50 border-red-200" : "bg-white border-gray-200"}`}>
+      <div className="min-w-0 flex-1">
         <p className={`font-medium text-sm ${danger ? "text-red-700" : "text-slate-800"}`}>
           {getTranslation(language, labelKey)}
         </p>
@@ -33,7 +33,7 @@ function ToggleRow({ labelKey, helpKey, checked, onChange, danger = false, langu
           {getTranslation(language, helpKey)}
         </p>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <Switch checked={checked} onCheckedChange={onChange} className="shrink-0" />
     </div>
   );
 }
@@ -142,7 +142,7 @@ export default function AdminSettings() {
       </div>
 
       {/* Content card */}
-      <Card className="rounded-2xl border-gray-100 shadow-sm">
+      <Card className="rounded-2xl border-gray-200 shadow-md bg-white">
         <CardHeader>
           <CardTitle className="text-base">
             {getTranslation(language, TABS.find(t => t.key === activeTab)?.labelKey)}
