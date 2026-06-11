@@ -104,27 +104,27 @@ export default function AdminChannelDetail() {
   
   const handleApproval = async (approved) => {
     if (!channel) return;
-    
+
     setUpdating(true);
     setError("");
     setSuccess("");
-    
+
     try {
-      await TelegramChannel.update(channel.id, { 
-        is_approved: approved,
-        is_rejected: !approved
-      });
-      
-      // Update local state
+      if (approved) {
+        await TelegramChannel.approve(channel.id);
+      } else {
+        await TelegramChannel.reject(channel.id);
+      }
+
       setChannel({
         ...channel,
         is_approved: approved,
         is_rejected: !approved
       });
-      
+
       setSuccess(
-        approved 
-          ? getTranslation(language, "channelApprovalSuccess") 
+        approved
+          ? getTranslation(language, "channelApprovalSuccess")
           : getTranslation(language, "channelRejectionSuccess")
       );
     } catch (err) {
@@ -180,39 +180,16 @@ export default function AdminChannelDetail() {
   return (
     <div className="container mx-auto py-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => navigate(-1)}
           className="flex items-center gap-1"
         >
           <ArrowLeft className="h-4 w-4" />
           {getTranslation(language, "backToDashboard")}
         </Button>
-        
-        <div className="flex items-center gap-2">
-          {getStatusBadge()}
-          {!channel.is_approved && !channel.is_rejected && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="border-red-500 text-red-500 hover:bg-red-50"
-                onClick={() => handleApproval(false)}
-                disabled={updating}
-              >
-                <X className="h-4 w-4 mr-1" />
-                {getTranslation(language, "reject")}
-              </Button>
-              <Button
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => handleApproval(true)}
-                disabled={updating}
-              >
-                <Check className="h-4 w-4 mr-1" />
-                {getTranslation(language, "approve")}
-              </Button>
-            </div>
-          )}
-        </div>
+
+        {getStatusBadge()}
       </div>
       
       {success && (
