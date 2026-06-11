@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings, DollarSign, Users, Shield, Wrench, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Settings, DollarSign, Users, Shield, Wrench, Save } from "lucide-react";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,7 +113,7 @@ export default function AdminSettings() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 max-w-3xl mx-auto">
       <DashboardHeader accent="slate" title={getTranslation(language, "systemSettings")}>
         <Button
           variant="ghost"
@@ -121,7 +121,7 @@ export default function AdminSettings() {
           className="text-white hover:text-white hover:bg-white/10 flex items-center gap-2"
           size="sm"
         >
-          <ArrowLeft className="h-4 w-4" />
+          {language === "he" ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
           {getTranslation(language, "backToDashboard")}
         </Button>
       </DashboardHeader>
