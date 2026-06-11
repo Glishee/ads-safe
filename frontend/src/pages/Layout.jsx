@@ -347,7 +347,7 @@ function LayoutContent({ children, currentPageName }) {
                 })}
               </nav>
 
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t space-y-2">
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t space-y-0.5">
                 <Link
                   to={createPageUrl("AccountSettings")}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm
@@ -357,25 +357,23 @@ function LayoutContent({ children, currentPageName }) {
                     }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Settings className={`h-5 w-5 ${currentPageName === "AccountSettings" ? "text-blue-600" : "text-gray-400"}`} />
+                  <Settings className={`h-5 w-5 shrink-0 ${currentPageName === "AccountSettings" ? "text-blue-600" : "text-gray-400"}`} />
                   {getTranslation(language, "accountSettings")}
                 </Link>
-                <Button
-                  variant="ghost"
-                  className="w-full flex items-center justify-start gap-2 text-gray-600 hover:bg-gray-100"
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   onClick={toggleLanguage}
                 >
-                  <Globe className="h-4 w-4 text-gray-400" />
+                  <Globe className="h-5 w-5 shrink-0 text-gray-400" />
                   {language === "he" ? "Switch to English" : "עבור לעברית"}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2"
+                </button>
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm text-gray-600 hover:bg-gray-100 hover:text-red-600"
                   onClick={handleLogout}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-5 w-5 shrink-0 text-gray-400" />
                   {getTranslation(language, "logout")}
-                </Button>
+                </button>
               </div>
             </aside>
 
@@ -408,6 +406,10 @@ function LayoutContent({ children, currentPageName }) {
                     <DropdownMenuItem onClick={() => { navigate(createPageUrl("AccountSettings")); setSidebarOpen(false); }}>
                       <Settings className="h-4 w-4 mr-2" />
                       {getTranslation(language, "accountSettings")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={toggleLanguage}>
+                      <Globe className="h-4 w-4 mr-2" />
+                      {language === "he" ? "Switch to English" : "עבור לעברית"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
