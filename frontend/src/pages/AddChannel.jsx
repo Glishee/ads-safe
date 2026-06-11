@@ -152,6 +152,7 @@ export default function AddChannel() {
           subscribers_count: data.subscribers_count,
           avatar_url: data.avatar_url || prev.avatar_url,
         }));
+        if (data.avatar_url) setAvatarPreview(data.avatar_url);
         setFetchLoading(false);
         return;
       } catch (err) {
