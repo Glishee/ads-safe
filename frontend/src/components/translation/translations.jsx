@@ -607,6 +607,7 @@ export const translations = {
     errorSubmittingChannel: "Error submitting channel. Please try again",
     errorUploadingAvatar: "Error uploading avatar. Please try again",
     backToDashboard: "Back to Dashboard",
+    submitForReview: "Submit for Review",
   },
 
   he: {
@@ -1220,6 +1221,7 @@ export const translations = {
     errorSubmittingChannel: "שגיאה בשליחת הערוץ. אנא נסה שוב",
     errorUploadingAvatar: "שגיאה בהעלאת האייקון. אנא נסה שוב",
     backToDashboard: "חזרה ללוח הבקרה",
+    submitForReview: "שלח לבדיקה",
   }
 };
 
