@@ -129,9 +129,14 @@ export default function AddChannel() {
     for (const delay of retryDelays) {
       if (delay > 0) await new Promise(r => setTimeout(r, delay));
       try {
+        const token = localStorage.getItem("auth_token");
         const res = await fetch(`${API_BASE}/api/get_channel_info`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { "X-Auth-Token": token } : {}),
+          },
           body: JSON.stringify({ link: channelData.telegram_link }),
         });
         const data = await res.json();
