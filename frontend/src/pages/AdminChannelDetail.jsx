@@ -527,8 +527,13 @@ export default function AdminChannelDetail() {
                 </div>
                 <div className="bg-gray-50 p-2 rounded-md text-center">
                   {channel.subscribers_count > 0 && channel.post_price ? (
-                    <div className="font-bold">
-                      ₪{((channel.post_price / channel.subscribers_count) * 1000).toFixed(2)} / 1000 {getTranslation(language, "subscribers")}
+                    <div>
+                      <div className="font-bold text-lg">
+                        ₪{((channel.post_price / channel.subscribers_count) * 1000).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {getTranslation(language, "per1000Subscribers")}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-sm text-gray-500">
