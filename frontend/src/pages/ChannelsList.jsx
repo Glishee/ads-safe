@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ChannelList from "@/components/telegram/channel-list";
 import { getTranslation } from "@/components/translation/translations";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function ChannelsList() {
+  useEffect(() => { document.title = "Telegram Channels — AdMarket"; }, []);
   const { language } = useLanguage();
 
   return (

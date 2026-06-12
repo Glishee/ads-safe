@@ -7,6 +7,7 @@ import RegisterForm from "@/components/auth/register-form";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function Register() {
+  useEffect(() => { document.title = "Register — AdMarket"; }, []);
   const navigate = useNavigate();
   const { language } = useLanguage();
 

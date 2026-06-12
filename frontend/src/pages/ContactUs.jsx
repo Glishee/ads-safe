@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/contexts/LanguageContext";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, MessageCircle, Clock, HelpCircle } from "lucide-react";
 
 export default function ContactUs() {
+  useEffect(() => { document.title = "Contact Us — AdMarket"; }, []);
   const { language } = useLanguage();
   const isHe = language === "he";
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });

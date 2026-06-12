@@ -84,6 +84,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    document.title = language === "he"
+      ? "AdMarket — פלטפורמת פרסום בערוצי טלגרם"
+      : "AdMarket — Telegram Advertising Marketplace";
+  }, [language]);
+
+  useEffect(() => {
     TelegramChannel.filter({ is_approved: true }).then(channels => {
       if (!Array.isArray(channels) || !channels.length) return;
       const reach = channels.reduce((s, c) => s + (c.subscribers_count || 0), 0);

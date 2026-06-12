@@ -1,0 +1,31 @@
+User-agent: *
+Allow: /
+Allow: /Home
+Allow: /Register
+Allow: /Login
+Allow: /TermsOfService
+Allow: /PrivacyPolicy
+Allow: /ContactUs
+Allow: /ChannelsList
+
+# Private dashboard pages — no indexing needed
+Disallow: /AdminDashboard
+Disallow: /AdminChannels
+Disallow: /AdminChannelDetail
+Disallow: /AdminUsers
+Disallow: /AdminUserDetail
+Disallow: /AdminSettings
+Disallow: /AdvertiserDashboard
+Disallow: /ChannelOwnerDashboard
+Disallow: /AccountSettings
+Disallow: /MyOrders
+Disallow: /AdvertiserStats
+Disallow: /ChannelOwnerAdRequests
+Disallow: /ChannelOwnerStats
+Disallow: /AddChannel
+Disallow: /MyChannels
+Disallow: /AdRequest
+Disallow: /RequestAd
+Disallow: /VerifyEmail
+
+Sitemap: https://admarket.co.il/sitemap.xml

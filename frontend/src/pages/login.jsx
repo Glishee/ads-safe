@@ -6,6 +6,7 @@ import LoginForm from "@/components/auth/login-form";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function Login() {
+  useEffect(() => { document.title = "Login — AdMarket"; }, []);
   const navigate = useNavigate();
   const { language } = useLanguage();
 

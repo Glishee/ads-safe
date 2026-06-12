@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useLanguage } from "@/components/contexts/LanguageContext";
 
 export default function PrivacyPolicy() {
+  useEffect(() => { document.title = "Privacy Policy — AdMarket"; }, []);
   const { language } = useLanguage();
   const isHe = language === "he";
 
