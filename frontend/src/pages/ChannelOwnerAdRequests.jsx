@@ -56,8 +56,10 @@ export default function ChannelOwnerAdRequests() {
 
         if (channelIds.length > 0) {
           const allRequests = await AdRequest.filter({ channel_id__in: channelIds }, "-created_date");
-          // Filter out requests that are pending_admin_review (suspicious ones not yet cleared by admin)
-          const displayableRequests = allRequests.filter(req => req.status !== "pending_admin_review");
+          // Only show requests the admin has already reviewed (pending = not yet seen by admin)
+          const displayableRequests = allRequests.filter(req =>
+            req.status !== "pending_admin_review" && req.status !== "pending"
+          );
           setAdRequests(displayableRequests);
         }
       } catch (error) {
@@ -80,14 +82,10 @@ export default function ChannelOwnerAdRequests() {
         updateData.rejection_reason = reason;
         updateData.rejected_by = user.id;
         updateData.owner_approved = false; // Explicitly set if rejecting
-      } else if (newStatus === "approved") { // This is when owner approves from their side
-        const request = adRequests.find(r => r.id === requestId);
+      } else if (newStatus === "approved") {
+        // Admin already approved before owner sees it — owner approval is always the final step
         updateData.owner_approved = true;
-        if (request.admin_approved) { // If admin also approved
-          updateData.status = "approved"; // Final approval status
-        } else { // If admin hasn't approved yet
-          updateData.status = "owner_approved"; // Owner has approved, waiting for admin
-        }
+        updateData.status = "approved";
       } else if (newStatus === "completed") {
          updateData.is_posted = true;
          updateData.posted_at = new Date().toISOString();
@@ -98,7 +96,9 @@ export default function ChannelOwnerAdRequests() {
       const channelIds = channels.map(ch => ch.id);
       if (channelIds.length > 0) {
           const allRequests = await AdRequest.filter({ channel_id__in: channelIds }, "-created_date");
-          const displayableRequests = allRequests.filter(req => req.status !== "pending_admin_review");
+          const displayableRequests = allRequests.filter(req =>
+            req.status !== "pending_admin_review" && req.status !== "pending"
+          );
           setAdRequests(displayableRequests);
       }
       if (isRejectModalOpen) setIsRejectModalOpen(false);
@@ -133,8 +133,8 @@ export default function ChannelOwnerAdRequests() {
   };
 
   const filteredRequests = (status) => {
-    if (status === "pending") { // Owner's pending queue
-      return adRequests.filter(req => (req.status === "pending" || req.status === "admin_approved") && !req.owner_approved);
+    if (status === "pending") { // Owner's action queue — admin has approved, waiting for owner
+      return adRequests.filter(req => req.status === "admin_approved" && !req.owner_approved);
     }
     if (status === "approved") { // Ads fully approved and ready to be (or already) posted
       return adRequests.filter(req => req.status === "approved");
@@ -149,7 +149,7 @@ export default function ChannelOwnerAdRequests() {
   };
   
   const renderRequestCard = (request) => {
-    const isPendingOwner = (request.status === "pending" || request.status === "admin_approved") && !request.owner_approved;
+    const isPendingOwner = request.status === "admin_approved" && !request.owner_approved;
     const isApproved = request.status === "approved";
     return (
       <Card key={request.id} className="overflow-hidden">

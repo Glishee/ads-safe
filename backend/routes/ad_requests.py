@@ -103,8 +103,14 @@ def get_all_ad_requests():
         query["advertiser_id"] = advertiser_id
     elif channel_id:
         query["channel_id"] = channel_id
+        # Channel owners only see requests the admin has already reviewed
+        if not is_admin:
+            query["status"] = {"$nin": ["pending", "pending_admin_review"]}
     elif channel_ids:
         query["channel_id"] = {"$in": channel_ids.split(",")}
+        # Channel owners only see requests the admin has already reviewed
+        if not is_admin:
+            query["status"] = {"$nin": ["pending", "pending_admin_review"]}
     elif not is_admin:
         query["advertiser_id"] = user_id
 

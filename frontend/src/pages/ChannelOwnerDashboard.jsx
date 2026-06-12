@@ -63,7 +63,7 @@ export default function ChannelOwnerDashboard() {
         setChannels(ch);
         if (ch.length) {
           const reqs = await AdRequest.filter({ channel_id__in: ch.map(c => c.id) });
-          setAdRequests(reqs.filter(r => r.status !== "pending_admin_review"));
+          setAdRequests(reqs.filter(r => r.status !== "pending_admin_review" && r.status !== "pending"));
         }
       } catch (err) {
         if (err.status === 401 || err.message?.includes("User not authenticated")) navigate(createPageUrl("Login"));
@@ -74,7 +74,7 @@ export default function ChannelOwnerDashboard() {
   }, []);
 
   const totalEarnings = adRequests.filter(r => r.status === "completed").reduce((s, r) => s + (r.price || 0), 0);
-  const pendingCount  = adRequests.filter(r => (r.status === "pending" || r.status === "admin_approved") && !r.owner_approved).length;
+  const pendingCount  = adRequests.filter(r => r.status === "admin_approved" && !r.owner_approved).length;
   const activeCount   = channels.filter(c => c.is_approved).length;
   const actionNeeded  = adRequests.filter(r => r.status === "admin_approved" && !r.owner_approved);
 
