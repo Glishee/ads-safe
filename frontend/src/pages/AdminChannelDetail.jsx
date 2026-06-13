@@ -40,6 +40,7 @@ export default function AdminChannelDetail() {
   const [activeTab, setActiveTab] = useState("details");
   const [updating, setUpdating] = useState(false);
   const [success, setSuccess] = useState("");
+  const [rejectDialog, setRejectDialog] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -102,7 +103,7 @@ export default function AdminChannelDetail() {
     fetchData();
   }, [navigate, language]);
   
-  const handleApproval = async (approved) => {
+  const handleApproval = async (approved, reason) => {
     if (!channel) return;
 
     setUpdating(true);
@@ -113,7 +114,7 @@ export default function AdminChannelDetail() {
       if (approved) {
         await TelegramChannel.approve(channel.id);
       } else {
-        await TelegramChannel.reject(channel.id);
+        await TelegramChannel.reject(channel.id, reason);
       }
 
       setChannel({
@@ -538,10 +539,10 @@ export default function AdminChannelDetail() {
                     <Check className="mr-2 h-4 w-4" />
                     {getTranslation(language, "approveChannel")}
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full text-red-500 border-red-200 hover:bg-red-50"
-                    onClick={() => handleApproval(false)}
+                    onClick={() => setRejectDialog({ reason: "" })}
                     disabled={updating}
                   >
                     <X className="mr-2 h-4 w-4" />
@@ -550,10 +551,10 @@ export default function AdminChannelDetail() {
                 </>
               ) : (
                 channel.is_approved ? (
-                  <Button 
+                  <Button
                     variant="outline"
                     className="w-full text-red-500 border-red-200 hover:bg-red-50"
-                    onClick={() => handleApproval(false)}
+                    onClick={() => setRejectDialog({ reason: "" })}
                     disabled={updating}
                   >
                     <X className="mr-2 h-4 w-4" />
@@ -584,5 +585,51 @@ export default function AdminChannelDetail() {
         </div>
       </div>
     </div>
+
+      {/* Reject reason dialog */}
+      {rejectDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">{getTranslation(language, "rejectChannel")}</h3>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">{getTranslation(language, "rejectionReason")}</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  getTranslation(language, "rejectReasonProhibited"),
+                  getTranslation(language, "rejectReasonSpam"),
+                  getTranslation(language, "rejectReasonMisleading"),
+                  getTranslation(language, "rejectReasonInappropriate"),
+                ].map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setRejectDialog(d => ({ ...d, reason: preset }))}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      rejectDialog.reason === preset
+                        ? "bg-red-600 text-white border-red-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mt-2"
+                rows={3}
+                placeholder={getTranslation(language, "rejectionReasonPlaceholder")}
+                value={rejectDialog.reason}
+                onChange={e => setRejectDialog(d => ({ ...d, reason: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setRejectDialog(null)}>{getTranslation(language, "cancel")}</Button>
+              <Button className="bg-red-600 hover:bg-red-700 text-white" disabled={updating} onClick={() => { handleApproval(false, rejectDialog.reason); setRejectDialog(null); }}>
+                <X className="h-4 w-4 mr-1" />{getTranslation(language, "reject")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
   );
 }

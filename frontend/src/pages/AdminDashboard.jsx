@@ -581,10 +581,31 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">{getTranslation(language, "rejectRequest")}</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{getTranslation(language, "rejectionReason")}</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">{getTranslation(language, "rejectionReason")}</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  getTranslation(language, "rejectReasonProhibited"),
+                  getTranslation(language, "rejectReasonSpam"),
+                  getTranslation(language, "rejectReasonMisleading"),
+                  getTranslation(language, "rejectReasonInappropriate"),
+                ].map(preset => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setRejectDialog(d => ({ ...d, reason: preset }))}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                      rejectDialog.reason === preset
+                        ? "bg-red-600 text-white border-red-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
               <textarea
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mt-2"
                 rows={3}
                 placeholder={getTranslation(language, "rejectionReasonPlaceholder")}
                 value={rejectDialog.reason}
