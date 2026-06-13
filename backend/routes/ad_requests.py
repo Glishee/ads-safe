@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, session
 from datetime import datetime
 from bson import ObjectId
 import os
+import logging
 import cloudinary
 import cloudinary.uploader
 from werkzeug.utils import secure_filename
@@ -11,6 +12,8 @@ from models.channel_model import channels_collection
 from routes.llm import moderate_text
 from middleware.auth import require_auth, require_admin
 from extensions import limiter
+
+logger = logging.getLogger(__name__)
 
 ad_request_bp = Blueprint("ad_request", __name__)
 UPLOAD_FOLDER = "static/uploads"
@@ -32,14 +35,32 @@ def _configure_cloudinary():
 
 def upload_media(file):
     if _configure_cloudinary():
+        logger.info("Uploading to Cloudinary: %s", file.filename)
         result = cloudinary.uploader.upload(file, folder="ads-safe", resource_type="auto")
+        logger.info("Cloudinary upload success: %s", result["secure_url"])
         return result["secure_url"]
     else:
+        logger.warning("Cloudinary not configured — saving locally (will be lost on restart)")
         filename = secure_filename(file.filename)
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
         base = BACKEND_PUBLIC_URL if BACKEND_PUBLIC_URL else ""
         return f"{base}/static/uploads/{filename}"
+
+
+@ad_request_bp.route("/cloudinary-status", methods=["GET"])
+@require_admin
+def cloudinary_status():
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
+    api_key = os.environ.get("CLOUDINARY_API_KEY")
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET")
+    configured = bool(cloud_name and api_key and api_secret)
+    return jsonify({
+        "cloudinary_configured": configured,
+        "cloud_name_set": bool(cloud_name),
+        "api_key_set": bool(api_key),
+        "api_secret_set": bool(api_secret),
+    })
 
 
 @ad_request_bp.route("/ad-requests", methods=["POST"])
@@ -52,7 +73,11 @@ def create_ad_request():
 
         media_url = None
         if file:
-            media_url = upload_media(file)
+            try:
+                media_url = upload_media(file)
+            except Exception as upload_err:
+                logger.error("Media upload failed: %s", upload_err, exc_info=True)
+                # Continue without media rather than failing the whole request
 
         # Force advertiser_id from session — never trust client
         user_id = session.get("user_id")
@@ -80,7 +105,8 @@ def create_ad_request():
         saved = ad_requests_collection.find_one({"_id": result.inserted_id})
         return jsonify(serialize_ad_request(saved)), 201
 
-    except Exception:
+    except Exception as e:
+        logger.error("Failed to create ad request: %s", e, exc_info=True)
         return jsonify({"error": "Failed to create ad request"}), 500
 
 
