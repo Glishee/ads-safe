@@ -126,7 +126,7 @@ export default function AdRequestForm() {
       setTimeout(() => navigate(createPageUrl("AdvertiserDashboard?tab=orders")), 2000);
     } catch (err) {
       console.error(err);
-      setError(getTranslation(language, "errorSubmittingRequest"));
+      setError(err?.detail || err?.error || err?.message || getTranslation(language, "errorSubmittingRequest"));
     } finally {
       setIsSubmitting(false);
     }

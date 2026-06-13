@@ -101,7 +101,7 @@ def create_ad_request():
 
     except Exception as e:
         logger.error("Failed to create ad request: %s", e, exc_info=True)
-        return jsonify({"error": "Failed to create ad request"}), 500
+        return jsonify({"error": "Failed to create ad request", "detail": str(e)}), 500
 
 
 @ad_request_bp.route("/ad-requests", methods=["GET"])
