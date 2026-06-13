@@ -49,7 +49,6 @@ def upload_media(file):
 
 
 @ad_request_bp.route("/cloudinary-status", methods=["GET"])
-@require_admin
 def cloudinary_status():
     cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME")
     api_key = os.environ.get("CLOUDINARY_API_KEY")
