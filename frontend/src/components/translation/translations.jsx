@@ -176,7 +176,7 @@ export const translations = {
     username: "Username",
     submitted: "Submitted",
     rejectRequest: "Reject Request",
-    approveRequest: "ApproveRequest",
+    approveRequest: "Approve Request",
     requestStatusUpdated: "Ad request status updated successfully!",
     errorUpdatingRequest: "Error updating request status. Please try again.",
     missingRequestId: "Missing request ID parameter",
@@ -600,6 +600,17 @@ export const translations = {
     priceMustBePositive: "Price must be greater than 0",
     errorSubmittingChannel: "Error submitting channel. Please try again",
     submitForReview: "Submit for Review",
+
+    // Missing keys
+    enterUsername: "Enter username",
+    perPost: "per post",
+    pricePerPost: "Price per post",
+    profileUpdateFailed: "Failed to update profile. Please try again.",
+    role: "Role",
+    stats: "Stats",
+    total: "Total",
+    usernameRequired: "Username is required",
+    viewAllUsers: "View All Users",
   },
 
   he: {
@@ -1206,6 +1217,17 @@ export const translations = {
     priceMustBePositive: "המחיר חייב להיות גדול מ-0",
     errorSubmittingChannel: "שגיאה בשליחת הערוץ. אנא נסה שוב",
     submitForReview: "שלח לבדיקה",
+
+    // Missing keys
+    enterUsername: "הכנס שם משתמש",
+    perPost: "לפרסום",
+    pricePerPost: "מחיר לפרסום",
+    profileUpdateFailed: "עדכון הפרופיל נכשל. נסה שוב.",
+    role: "תפקיד",
+    stats: "סטטיסטיקות",
+    total: "סה\"כ",
+    usernameRequired: "שם משתמש הוא שדה חובה",
+    viewAllUsers: "צפה בכל המשתמשים",
   }
 };
 
