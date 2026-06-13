@@ -316,6 +316,7 @@ export const translations = {
     owner: "Owner",
     unknownOwner: "Unknown Owner",
     adPrice: "Ad Price",
+    channelDescription: "Description",
     noDescription: "No description provided.",
 
     // User Management
@@ -931,6 +932,7 @@ export const translations = {
     owner: "בעלים",
     unknownOwner: "בעלים לא ידוע",
     adPrice: "מחיר פרסום",
+    channelDescription: "תיאור",
     noDescription: "לא סופק תיאור.",
     
     // User Management
