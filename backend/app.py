@@ -39,7 +39,7 @@ def handle_preflight():
         else:
             res.headers['Access-Control-Allow-Origin'] = '*'
         res.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Auth-Token'
         res.headers['Access-Control-Max-Age'] = '86400'
         return res
 
@@ -52,7 +52,7 @@ def add_cors_headers(response):
     else:
         response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Auth-Token'
     return response
 
 limiter.init_app(app)
