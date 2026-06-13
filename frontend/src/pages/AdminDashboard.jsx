@@ -57,6 +57,8 @@ export default function AdminDashboard() {
   const [channels, setChannels] = useState([]);
   const [requests, setRequests] = useState([]);
   const [users, setUsers]       = useState([]);
+  const [rejectDialog, setRejectDialog] = useState(null); // { id, reason }
+
 
   // Sync active tab with URL so browser back/forward works on mobile
   const activeTab = new URLSearchParams(location.search).get("tab") || "overview";
@@ -108,15 +110,16 @@ export default function AdminDashboard() {
     } catch (e) { console.error(e); }
   };
 
-  const rejectRequest = async (id, reason = "Not suitable content") => {
+  const rejectRequest = async (id, reason) => {
     try {
       const req = requests.find(r => r.id === id);
       await AdRequest.update(id, {
-        status: "rejected", rejection_reason: reason,
+        status: "rejected", rejection_reason: reason || "Rejected by admin",
         admin_approved: false, owner_approved: false,
         ...(req?.status === "pending_admin_review" ? { is_suspicious: false } : {}),
       });
       setRequests(await AdRequest.list());
+      setRejectDialog(null);
     } catch (e) { console.error(e); }
   };
 
@@ -414,7 +417,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0 flex-wrap">
                         <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-100 gap-1"
-                          onClick={() => rejectRequest(req.id, req.moderation_info?.explanation || "Prohibited content")}>
+                          onClick={() => setRejectDialog({ id: req.id, reason: req.moderation_info?.explanation || "" })}>
                           <X className="h-3.5 w-3.5" />{getTranslation(language, "reject")}
                         </Button>
                         <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 gap-1"
@@ -458,7 +461,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 gap-1"
-                          onClick={() => rejectRequest(req.id)}>
+                          onClick={() => setRejectDialog({ id: req.id, reason: "" })}>
                           <X className="h-3.5 w-3.5" />{getTranslation(language, "reject")}
                         </Button>
                         <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 gap-1"
@@ -572,5 +575,30 @@ export default function AdminDashboard() {
         </div>
       )}
     </div>
+
+      {/* Reject reason dialog */}
+      {rejectDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">{getTranslation(language, "rejectRequest")}</h3>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{getTranslation(language, "rejectionReason")}</label>
+              <textarea
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+                rows={3}
+                placeholder={getTranslation(language, "rejectionReasonPlaceholder")}
+                value={rejectDialog.reason}
+                onChange={e => setRejectDialog(d => ({ ...d, reason: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setRejectDialog(null)}>{getTranslation(language, "cancel")}</Button>
+              <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => rejectRequest(rejectDialog.id, rejectDialog.reason)}>
+                <X className="h-4 w-4 mr-1" />{getTranslation(language, "reject")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
   );
 }
