@@ -29,6 +29,7 @@ export default function AdRequestPage() {
   const [isChannelOwner, setIsChannelOwner] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mediaLoadError, setMediaLoadError] = useState(false);
+  const [rejectDialog, setRejectDialog] = useState(null); // { mode: "admin"|"owner", reason: "" }
   
   useEffect(() => {
     const fetchData = async () => {
@@ -170,29 +171,37 @@ export default function AdRequestPage() {
     }
   };
   
-  const handleAdminReject = async () => {
+  const handleAdminReject = () => setRejectDialog({ mode: "admin", reason: "" });
+
+  const handleOwnerReject = () => setRejectDialog({ mode: "owner", reason: "" });
+
+  const submitReject = async () => {
+    const reason = rejectDialog.reason || getTranslation(language, "notSuitableContent");
+    setRejectDialog(null);
     setUpdating(true);
-    const reason = prompt(getTranslation(language, "enterRejectionReason"), getTranslation(language, "notSuitableContent"));
-    if (reason === null) { 
-        setUpdating(false);
-        return;
-    }
     try {
-      const updatePayload = {
-        status: "rejected",
-        rejection_reason: reason || getTranslation(language, "notSuitableContent"),
-        rejected_by: (await User.me()).id,
-        admin_approved: false,
-      };
-
-      // If the request being viewed was 'pending_admin_review' and is_suspicious,
-      // then by rejecting it, the admin is resolving its suspicious state.
-      if (request.status === "pending_admin_review" && request.is_suspicious) {
-        updatePayload.is_suspicious = false;
+      if (rejectDialog.mode === "admin") {
+        const updatePayload = {
+          status: "rejected",
+          rejection_reason: reason,
+          rejected_by: (await User.me()).id,
+          admin_approved: false,
+        };
+        if (request.status === "pending_admin_review" && request.is_suspicious) {
+          updatePayload.is_suspicious = false;
+        }
+        await AdRequest.update(request.id, updatePayload);
+        setSuccess(getTranslation(language, "adminRejectionSuccess"));
+      } else {
+        await AdRequest.update(request.id, {
+          status: "rejected",
+          rejection_reason: reason,
+          rejected_by: (await User.me()).id,
+          owner_approved: false,
+          owner_notes: ownerNotes,
+        });
+        setSuccess(getTranslation(language, "requestStatusUpdated"));
       }
-
-      await AdRequest.update(request.id, updatePayload);
-      setSuccess(getTranslation(language, "adminRejectionSuccess"));
       const updatedRequest = await AdRequest.get(request.id);
       setRequest(updatedRequest);
     } catch (err) {
@@ -222,30 +231,6 @@ export default function AdRequestPage() {
     }
   };
 
-  const handleOwnerReject = async () => {
-     setUpdating(true);
-    const reason = prompt(getTranslation(language, "enterRejectionReason"), getTranslation(language, "notSuitableContent"));
-    if (reason === null) {
-        setUpdating(false);
-        return;
-    }
-    try {
-      await AdRequest.update(request.id, {
-        status: "rejected",
-        rejection_reason: reason || getTranslation(language, "notSuitableContent"),
-        rejected_by: (await User.me()).id,
-        owner_approved: false,
-        owner_notes: ownerNotes
-      });
-      setSuccess(getTranslation(language, "requestStatusUpdated"));
-      const updatedRequest = await AdRequest.get(request.id);
-      setRequest(updatedRequest);
-    } catch (err) {
-      setError(getTranslation(language, "errorUpdatingRequest"));
-    } finally {
-      setUpdating(false);
-    }
-  };
   
   const handleOwnerMarkCompleted = async () => {
     setUpdating(true);
@@ -322,6 +307,7 @@ export default function AdRequestPage() {
   
   // Main content when request is found
   return (
+    <>
     <div className="container mx-auto max-w-3xl py-8">
       <Button 
         variant="outline" 
@@ -565,5 +551,52 @@ export default function AdRequestPage() {
         </CardFooter>
       </Card>
     </div>
+
+    {/* Reject reason dialog */}
+    {rejectDialog && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">{getTranslation(language, "rejectRequest")}</h3>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">{getTranslation(language, "rejectionReason")}</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                getTranslation(language, "rejectReasonProhibited"),
+                getTranslation(language, "rejectReasonSpam"),
+                getTranslation(language, "rejectReasonMisleading"),
+                getTranslation(language, "rejectReasonInappropriate"),
+              ].map(preset => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setRejectDialog(d => ({ ...d, reason: preset }))}
+                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                    rejectDialog.reason === preset
+                      ? "bg-red-600 text-white border-red-600"
+                      : "bg-white text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <textarea
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none mt-2"
+              rows={3}
+              placeholder={getTranslation(language, "rejectionReasonPlaceholder")}
+              value={rejectDialog.reason}
+              onChange={e => setRejectDialog(d => ({ ...d, reason: e.target.value }))}
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button variant="outline" onClick={() => setRejectDialog(null)}>{getTranslation(language, "cancel")}</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={submitReject}>
+              <X className="h-4 w-4 mr-1" />{getTranslation(language, "reject")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
