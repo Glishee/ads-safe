@@ -28,6 +28,7 @@ export default function AdRequestPage() {
   const [updating, setUpdating] = useState(false);
   const [isChannelOwner, setIsChannelOwner] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [mediaLoadError, setMediaLoadError] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -428,25 +429,23 @@ export default function AdRequestPage() {
                     <source src={mediaUrl} />
                     {getTranslation(language, "videoNotSupported")}
                   </video>
+                ) : mediaLoadError ? (
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2"
+                    onClick={() => window.open(mediaUrl, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    {getTranslation(language, "viewMediaFile")}
+                  </Button>
                 ) : (
                   <img
                     src={mediaUrl}
                     alt="Advertisement Media"
                     className="max-w-full h-auto rounded-md max-h-80 mx-auto"
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                      e.target.nextSibling.style.display = "flex";
-                    }}
+                    onError={() => setMediaLoadError(true)}
                   />
                 )}
-                <Button
-                  variant="outline"
-                  className="w-full items-center justify-center gap-2 hidden"
-                  onClick={() => window.open(mediaUrl, "_blank")}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  {getTranslation(language, "viewMediaFile")}
-                </Button>
               </div>
             </div>
           )}
