@@ -54,14 +54,7 @@ def cloudinary_status():
     api_key = os.environ.get("CLOUDINARY_API_KEY")
     api_secret = os.environ.get("CLOUDINARY_API_SECRET")
     configured = bool(cloud_name and api_key and api_secret)
-    all_keys = sorted(os.environ.keys())
-    return jsonify({
-        "cloudinary_configured": configured,
-        "cloud_name_set": bool(cloud_name),
-        "api_key_set": bool(api_key),
-        "api_secret_set": bool(api_secret),
-        "all_env_keys": all_keys,
-    })
+    return jsonify({"cloudinary_configured": configured})
 
 
 @ad_request_bp.route("/ad-requests", methods=["POST"])
