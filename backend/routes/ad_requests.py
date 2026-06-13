@@ -36,7 +36,8 @@ def _configure_cloudinary():
 def upload_media(file):
     if _configure_cloudinary():
         logger.info("Uploading to Cloudinary: %s", file.filename)
-        result = cloudinary.uploader.upload(file, folder="ads-safe", resource_type="auto")
+        file_bytes = file.read()
+        result = cloudinary.uploader.upload(file_bytes, folder="ads-safe", resource_type="auto")
         logger.info("Cloudinary upload success: %s", result["secure_url"])
         return result["secure_url"]
     else:
