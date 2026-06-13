@@ -420,30 +420,33 @@ export default function AdRequestPage() {
             <div>
               <h3 className="font-semibold mb-2">{getTranslation(language, "adMedia")}</h3>
               <div className="bg-gray-50 p-4 rounded-md">
-                {mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
-                  <img
-                    src={mediaUrl}
-                    alt="Advertisement Media"
-                    className="max-w-full h-auto rounded-md max-h-80 mx-auto"
-                  />
-                ) : mediaUrl.match(/\.(mp4|webm)$/i) ? (
+                {(mediaUrl.includes("/video/upload/") || mediaUrl.match(/\.(mp4|webm)$/i)) ? (
                   <video
                     controls
                     className="max-w-full h-auto rounded-md max-h-80 mx-auto"
                   >
-                    <source src={mediaUrl} type={`video/${mediaUrl.split('.').pop()}`} />
+                    <source src={mediaUrl} />
                     {getTranslation(language, "videoNotSupported")}
                   </video>
                 ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-center gap-2"
-                    onClick={() => window.open(mediaUrl, "_blank")}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    {getTranslation(language, "viewMediaFile")}
-                  </Button>
+                  <img
+                    src={mediaUrl}
+                    alt="Advertisement Media"
+                    className="max-w-full h-auto rounded-md max-h-80 mx-auto"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
+                    }}
+                  />
                 )}
+                <Button
+                  variant="outline"
+                  className="w-full items-center justify-center gap-2 hidden"
+                  onClick={() => window.open(mediaUrl, "_blank")}
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {getTranslation(language, "viewMediaFile")}
+                </Button>
               </div>
             </div>
           )}
