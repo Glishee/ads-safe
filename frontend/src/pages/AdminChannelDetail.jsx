@@ -179,6 +179,7 @@ export default function AdminChannelDetail() {
   };
   
   return (
+    <>
     <div className="container mx-auto py-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <Button
@@ -631,5 +632,6 @@ export default function AdminChannelDetail() {
           </div>
         </div>
       )}
+    </>
   );
 }
