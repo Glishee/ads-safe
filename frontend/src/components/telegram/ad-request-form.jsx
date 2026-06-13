@@ -5,7 +5,7 @@ import { User, AdRequest, TelegramChannel } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Clock } from "lucide-react";
+import { AlertCircle, Clock, ImagePlus, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -93,13 +93,6 @@ export default function AdRequestForm() {
     setError("");
   };
 
-  const uploadFile = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/upload`, { method: "POST", body: formData });
-    return await res.json();
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!adText) return setError(getTranslation(language, "adTextRequired"));
@@ -109,22 +102,13 @@ export default function AdRequestForm() {
     setSuccess("");
 
     try {
-      let mediaUrl = null;
-      if (mediaFile) {
-        const uploadRes = await uploadFile(mediaFile);
-        mediaUrl = uploadRes.url;
-      }
-
-      const [h, m] = selectedTime.split(":").map(Number);
       const publicationTime = new Date(`${selectedDate}T${selectedTime}:00`);
-
       const moderation = await moderateContent(adText);
-      const formData = new FormData();
 
+      const formData = new FormData();
       formData.append("advertiser_id", user.id);
       formData.append("channel_id", channelId);
       formData.append("ad_text", adText);
-      formData.append("media_url", mediaUrl || "");
       formData.append("price", channel.post_price);
       formData.append("publication_time", publicationTime.toISOString());
       formData.append("is_suspicious", moderation.containsProhibitedContent);
@@ -134,6 +118,7 @@ export default function AdRequestForm() {
       if (moderation.containsProhibitedContent) {
         formData.append("moderation_info", JSON.stringify(moderation));
       }
+      // Send the file directly — backend uploads to Cloudinary
       if (mediaFile) formData.append("media", mediaFile);
 
       await AdRequest.create(formData);
@@ -199,11 +184,32 @@ export default function AdRequestForm() {
             </div>
           </div>
 
-          <Label>{getTranslation(language, "uploadMedia")}</Label>
-          <Input type="file" onChange={handleFileChange} />
-          {mediaPreview && (mediaFile.type.startsWith("image/")
-            ? <img src={mediaPreview} className="mt-2 max-w-full h-auto" alt="Preview" />
-            : <video src={mediaPreview} className="mt-2 max-w-full h-auto" controls />)}
+          <div>
+            <Label className="mb-2 block">{getTranslation(language, "uploadMedia")}</Label>
+            {mediaPreview ? (
+              <div className="relative inline-block">
+                {mediaFile.type.startsWith("image/") ? (
+                  <img src={mediaPreview} className="max-h-48 rounded-xl border object-contain" alt="Preview" />
+                ) : (
+                  <video src={mediaPreview} className="max-h-48 rounded-xl border" controls />
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setMediaFile(null); setMediaPreview(null); }}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                <ImagePlus className="h-8 w-8 text-gray-400 mb-2" />
+                <span className="text-sm text-gray-500">{getTranslation(language, "uploadMedia")}</span>
+                <span className="text-xs text-gray-400 mt-0.5">JPG, PNG, GIF, MP4 · max 10MB</span>
+                <input type="file" className="hidden" onChange={handleFileChange} accept="image/jpeg,image/png,image/gif,video/mp4,video/webm" />
+              </label>
+            )}
+          </div>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" onClick={() => navigate(createPageUrl("ChannelsList"))}>{getTranslation(language, "cancel")}</Button>
