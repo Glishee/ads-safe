@@ -5,12 +5,40 @@ from bson import ObjectId
 import os
 import re
 import requests
+import cloudinary
+import cloudinary.uploader
 from datetime import datetime
 
 bot_bp = Blueprint("telegram_bot", __name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 API = f"https://api.telegram.org/bot{TOKEN}"
+
+_cloudinary_configured = False
+
+def _configure_cloudinary():
+    global _cloudinary_configured
+    if not _cloudinary_configured:
+        cn = os.environ.get("CLOUDINARY_CLOUD_NAME")
+        ak = os.environ.get("CLOUDINARY_API_KEY")
+        as_ = os.environ.get("CLOUDINARY_API_SECRET")
+        if cn and ak and as_:
+            cloudinary.config(cloud_name=cn, api_key=ak, api_secret=as_)
+            _cloudinary_configured = True
+    return _cloudinary_configured
+
+def _persist_avatar(temp_url: str) -> str:
+    try:
+        resp = requests.get(temp_url, timeout=10)
+        resp.raise_for_status()
+        if _configure_cloudinary():
+            result = cloudinary.uploader.upload(
+                resp.content, folder="ads-safe/avatars", resource_type="image"
+            )
+            return result["secure_url"]
+    except Exception:
+        pass
+    return temp_url
 
 CATEGORIES = [
     "tech", "business", "entertainment", "news", "lifestyle",
@@ -72,7 +100,8 @@ def _fetch_channel(link: str):
         fid = photo.get("big_file_id")
         fr = requests.get(f"{API}/getFile", params={"file_id": fid}, timeout=10).json()
         if fr.get("ok"):
-            avatar_url = f"https://api.telegram.org/file/bot{TOKEN}/{fr['result']['file_path']}"
+            temp_url = f"https://api.telegram.org/file/bot{TOKEN}/{fr['result']['file_path']}"
+            avatar_url = _persist_avatar(temp_url)
 
     return {
         "name": chat.get("title", ""),
