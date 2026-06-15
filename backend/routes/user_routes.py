@@ -63,7 +63,7 @@ def _send_verification_email(to_email, username, token):
 </html>"""
 
         result = resend.Emails.send({
-            "from": "AdMarket <onboarding@resend.dev>",
+            "from": "AdMarket <noreply@admarket.co.il>",
             "to": [to_email],
             "subject": "Verify your AdMarket account",
             "html": html_body,
@@ -80,6 +80,15 @@ def _send_verification_email(to_email, username, token):
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@user_bp.route('/email-status', methods=['GET'])
+def email_status():
+    api_key = os.getenv("RESEND_API_KEY")
+    return jsonify({
+        "resend_configured": bool(api_key),
+        "sender": "noreply@admarket.co.il",
+        "frontend_url": os.getenv("FRONTEND_URL", "NOT SET"),
+    })
 
 @user_bp.route('/register', methods=['POST'])
 @limiter.limit("5 per minute")
